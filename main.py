@@ -1,54 +1,54 @@
-# KPI aprēķins: Izmaksas un marža
-# Uzdevums: ievadi datus par vairākiem produktiem un apskatī rezultātus
+# KPI Calculator: Costs and Gross Margin
+# Task: enter data for multiple products and view the results
 
 # -------------------------------------------------------
-# 1. DATU IEVADE
-# Ievāc datus par vairākiem produktiem un glabā tos sarakstos (list)
+# 1. DATA INPUT
+# Collect data for multiple products and store in lists
 # -------------------------------------------------------
 
-produkti = []
-ienemumi = []
-izmaksas = []
+products = []
+revenues = []
+costs = []
 
-skaits = int(input("Cik produktus vēlies ievadīt? "))
+count = int(input("How many products do you want to enter? "))
 
-for i in range(skaits):
-    print(f"\n--- Produkts {i + 1} ---")
-    nosaukums = input("Produkta nosaukums: ")
-    # TODO: ievāc ieņēmumus un izmaksas (izmanto float() konvertācijai)
+for i in range(count):
+    print(f"\n--- Product {i + 1} ---")
+    name = input("Product name: ")
+    # TODO: collect revenue and costs (use float() to convert)
 
 # -------------------------------------------------------
-# 2. APRĒĶINI
-# Izmanto for ciklu, lai aprēķinātu katram produktam:
-#   - peļņu (ieņēmumi - izmaksas)
-#   - bruto maržu % ( peļņa / ieņēmumi * 100 )
+# 2. CALCULATIONS
+# Use a for loop to calculate for each product:
+#   - profit (revenue - costs)
+#   - gross margin % ( profit / revenue * 100 )
 # -------------------------------------------------------
 
-rezultati = {}  # vārdnīca: produkta nosaukums -> {pelna, marzas_procents}
+results = {}  # dictionary: product name -> {profit, margin_percent}
 
-for i in range(skaits):
-    # TODO: aprēķini peļņu un maržu
+for i in range(count):
+    # TODO: calculate profit and margin
     pass
 
 # -------------------------------------------------------
-# 3. LĒMUMU LOĢIKA
-# Izmanto if/elif/else, lai katram produktam izvērtētu maržu:
-#   > 50% — "Lieliska marža"
-#   20–50% — "Laba marža"
-#   < 20% — "Zema marža, pārskati izmaksas"
+# 3. DECISION LOGIC
+# Use if/elif/else to evaluate the margin for each product:
+#   > 50% — "Excellent margin"
+#   20–50% — "Good margin"
+#   < 20% — "Low margin, review your costs"
 # -------------------------------------------------------
 
-print("\n===== KPI PĀRSKATS =====")
+print("\n===== KPI REPORT =====")
 
-for nosaukums, dati in rezultati.items():
-    # TODO: izvadi rezultātus un pievieno if/elif/else vērtējumu
+for name, data in results.items():
+    # TODO: print results and add if/elif/else evaluation
     pass
 
 # -------------------------------------------------------
-# 4. KOPSAVILKUMS
-# TODO: aprēķini un izvadi:
-#   - kopējos ieņēmumus (sum())
-#   - kopējās izmaksas (sum())
-#   - kopējo peļņu
-#   - vidējo maržu visos produktos
+# 4. SUMMARY
+# TODO: calculate and print:
+#   - total revenue (sum())
+#   - total costs (sum())
+#   - total profit
+#   - average margin across all products
 # -------------------------------------------------------
