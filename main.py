@@ -11,6 +11,8 @@ costs = []
 count = int(input("How many products do you want to enter? "))
 
 for i in range(count):
+    # i counts loop iterations (0,1,2...), +1 makes it human-readable (1,2,3...)
+    # \n adds empty line before each product to separate output visually
     print(f"\n--- Product {i + 1} ---")
     name = input("Product name: ")
     # TODO: collect revenue and costs (use float() to convert)
