@@ -1,10 +1,7 @@
 # KPI Calculator: Costs and Gross Margin
 # Task: enter data for multiple products and view the results
 
-# -------------------------------------------------------
-# 1. DATA INPUT
-# -------------------------------------------------------
-
+# region 1. DATA INPUT
 products = []
 revenues = []
 costs = []
@@ -18,11 +15,9 @@ for i in range(count):
     name = input("Product name: ")
     # TODO: collect revenue and costs (use float() to convert)
     # TODO: if revenue is 0 or less, print a warning and skip this product
+# endregion
 
-# -------------------------------------------------------
-# 2. CALCULATIONS
-# -------------------------------------------------------
-
+# region 2. CALCULATIONS
 results = {}  # dictionary: product name -> {profit, margin_percent}
 
 for i in range(count):
@@ -30,11 +25,9 @@ for i in range(count):
     # TODO: calculate gross margin % (profit / revenue * 100)
     # TODO: store profit and margin in results dictionary
     pass
+# endregion
 
-# -------------------------------------------------------
-# 3. DECISION LOGIC & REPORT
-# -------------------------------------------------------
-
+# region 3. DECISION LOGIC & REPORT
 print("\n===== KPI REPORT =====")
 
 for name, data in results.items():
@@ -44,11 +37,9 @@ for name, data in results.items():
     #       20-50% — "Good margin"
     #       < 20% — "Low margin, review your costs"
     pass
+# endregion
 
-# -------------------------------------------------------
-# 4. SUMMARY
-# -------------------------------------------------------
-
+# region 4. SUMMARY
 # TODO: calculate total revenue, total costs and total profit using sum()
 # TODO: calculate average margin across all products
 # TODO: print all summary values
@@ -59,3 +50,4 @@ for name, data in results.items():
 # TODO: compare total profit to the profit goal using if/else
 #       if reached — "Goal reached!"
 #       if not — print how much is still missing
+# endregion
