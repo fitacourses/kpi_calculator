@@ -7,6 +7,7 @@ revenues = []
 costs = []
 
 # TODO: ask the user for a profit goal (use float() to convert)
+profit = float(input("What's your profit goal?"))
 
 count = int(input("How many products do you want to enter? "))
 
