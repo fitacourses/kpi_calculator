@@ -19,11 +19,11 @@ for i in range(count):
     # TODO-DONE: collect revenue and costs (use float() to convert)
     revenue = float(input("How much did you earn from this product (in €)? "))
     cost = float(input("How much did it cost to make/buy this product (in €)? "))
-    # TODO: if revenue is 0 or less, print a warning and skip this product
+    # TODO-DONE: if revenue is 0 or less, print a warning and skip this product
     if revenue <= 0:
         print(f"Warning: invalid revenue for product {product} ({revenue})")
         continue
-    # TODO-DONE: store valid products and revenues/costs for them
+    # TODO-DONE: store valid products, revenues and costs into lists
     products.append(product)
     revenues.append(revenue)
     costs.append(cost)
@@ -33,7 +33,9 @@ for i in range(count):
 results = {}  # dictionary: product name -> {profit, margin_percent}
 
 for i in range(count):
-    # TODO: calculate profit (revenue - costs)
+    # TODO-DONE: calculate profit (revenue - costs)
+    # calculate profit by getting values for all items (indexes) and then do the math
+    profit = revenue[i] - costs[i]
     # TODO: calculate gross margin % (profit / revenue * 100)
     # TODO: store profit and margin in results dictionary
     pass
