@@ -6,8 +6,8 @@ products = []
 revenues = []
 costs = []
 
-# TODO: ask the user for a profit goal (use float() to convert)
-profit = float(input("What's your profit goal?"))
+# TODO-DONE: ask the user for a profit goal (use float() to convert)
+profit = float(input("What's your profit goal? "))
 
 count = int(input("How many products do you want to enter? "))
 
@@ -15,9 +15,15 @@ for i in range(count):
     # i counts loop iterations (0,1,2...), +1 makes it human-readable (1,2,3...)
     # \n adds empty line before each product to separate output visually
     print(f"\n--- Product {i + 1} ---")
-    name = input("Product name: ")
-    # TODO: collect revenue and costs (use float() to convert)
-    # TODO: if revenue is 0 or less, print a warning and skip this product
+    product = input("Product name: ")
+    # TODO-DONE: collect revenue and costs (use float() to convert)
+    revenue = float(input("How much did you earn from this product? "))
+    cost = float(input("How much did it cost to make/buy this product? "))
+    # TODO-DONE: How would I store received inputs after each iteration
+    products.append(product)
+    revenues.append(revenue)
+    costs.append(cost)
+# TODO: if revenue is 0 or less, print a warning and skip this product
 # endregion
 
 # region 2. CALCULATIONS
