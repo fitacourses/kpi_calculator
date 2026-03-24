@@ -62,7 +62,12 @@ for name, data in results.items():
         print("Low margin, review your costs")
 # endregion
 
-50
+# region 4. SUMMARY
+# TODO: calculate total revenue, total costs and total profit
+total_revenue = sum(revenues)
+total_costs = sum(costs)
+# sum all key "profit" values by iterating through each nested dictionary in results
+total_profit = sum(value["profit"] for value in results.values())
 # TODO: calculate average margin across all products
 # TODO: print all summary values
 
