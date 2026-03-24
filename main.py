@@ -36,7 +36,7 @@ for i in range(count):
     # TODO-DONE: calculate profit by getting values at index position in each list for current iteration
     profit = revenues[i] - costs[i]
     # TODO-DONE: calculate gross margin % by dividing profit by revenue for the current product, times 100 to get percent
-    margin= (profit / revenues[i]) * 100
+    margin = (profit / revenues[i]) * 100
     # TODO-DONE: store profit and margin for each product and build a dictionary with keys
     results[products[i]] = {"profit": profit, "margin": margin}
 # endregion
@@ -44,17 +44,26 @@ for i in range(count):
 # region 3. DECISION LOGIC & REPORT
 print("\n===== KPI REPORT =====")
 
+# loop trough each key-value pair, product name and nested dictionary with profit and margin
 for name, data in results.items():
-    # TODO: print product name, profit and margin
-    # TODO: evaluate margin with if/elif/else:
+    # TODO-DONE: print product name, profit and margin
+    print(f"Product name: {name}")
+    print(f"Profit: {data['profit']}")
+    print(f"Margin: {data['margin']}")
+    # TODO-DONE: evaluate margin with if/elif/else:
     #       > 50% — "Excellent margin"
     #       20-50% — "Good margin"
     #       < 20% — "Low margin, review your costs"
-    pass
+    if data['margin'] >= 50:
+        print("Excellent margin")
+    elif data['margin'] >= 20:
+        print("Good margin")
+    else:
+        print("Low margin, review your costs")
 # endregion
 
 # region 4. SUMMARY
-# TODO: calculate total revenue, total costs and total profit using sum()
+# TODO: calculate total revenue, total costs and total profit
 # TODO: calculate average margin across all products
 # TODO: print all summary values
 
