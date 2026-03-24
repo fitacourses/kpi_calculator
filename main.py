@@ -30,15 +30,15 @@ for i in range(count):
 # endregion
 
 # region 2. CALCULATIONS
-results = {}  # dictionary: product name -> {profit, margin_percent}
+results = {}  # dictionary: product name -> {profit, margin}
 
 for i in range(count):
     # TODO-DONE: calculate profit by getting values at index position in each list for current iteration
     profit = revenues[i] - costs[i]
     # TODO-DONE: calculate gross margin % by dividing profit by revenue for the current product, times 100 to get percent
-    margin_percent = (profit / revenues[i]) * 100
+    margin= (profit / revenues[i]) * 100
     # TODO-DONE: store profit and margin for each product and build a dictionary with keys
-    results[products[i]] = {"profit": profit, "margin_percent": margin_percent}
+    results[products[i]] = {"profit": profit, "margin": margin}
 # endregion
 
 # region 3. DECISION LOGIC & REPORT
