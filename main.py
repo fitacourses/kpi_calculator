@@ -7,7 +7,7 @@ revenues = []
 costs = []
 
 # TODO-DONE: ask the user for a profit goal (use float() to convert)
-profit = float(input("What's your profit goal (in €)? "))
+profit_goal = float(input("What's your profit goal (in €)? "))
 
 count = int(input("How many products do you want to enter? "))
 
@@ -47,9 +47,7 @@ print("\n===== KPI REPORT =====")
 # loop trough each key-value pair, product name and nested dictionary with profit and margin
 for name, data in results.items():
     # TODO-DONE: print product name, profit and margin
-    print(f"Product name: {name}")
-    print(f"Profit: {data['profit']}")
-    print(f"Margin: {data['margin']}")
+    print(f"Product name: {name}\n Profit: {data['profit']}\n Margin: {data['margin']}")
     # TODO-DONE: evaluate margin with if/elif/else:
     #       > 50% — "Excellent margin"
     #       20-50% — "Good margin"
@@ -71,10 +69,7 @@ total_profit = sum(value['profit'] for value in results.values())
 # TODO-DONE: calculate average margin across all products
 avg_margin = sum(percent['margin'] for percent in results.values()) / len(results)
 # TODO-DONE: print all summary values
-print(f"Total costs: {total_costs}")
-print(f"Total revenue: {total_revenue}")
-print(f"Total profit: {total_profit}")
-print(f"Average margin: {avg_margin}")
+print(f"Total costs: {total_costs}\n Total revenue: {total_revenue}\n Total profit: {total_profit}\n Average margin: {avg_margin}")
 # TODO-DONE: if current product margin is higher than highest so far, update best product
 # TODO-DONE: if current product margin is lower than lowest so far, update worst product
 best_product = None
@@ -89,10 +84,7 @@ for name, data in results.items():
     elif data['margin'] < worst_margin:
         worst_margin = data['margin']
         worst_product = name
-print(f"Best product {best_product}")
-print(f"Worst product: {worst_product}")
-print(f"Best margin: {best_margin}")
-print(f"Worst margin: {worst_margin}")
+print(f"Best product {best_product}\n Worst product: {worst_product}\n Best margin: {best_margin} \n Worst margin: {worst_margin}")
 
 # TODO: compare total profit to the profit goal using if/else
 #       if reached — "Goal reached!"
