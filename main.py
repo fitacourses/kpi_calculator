@@ -63,14 +63,18 @@ for name, data in results.items():
 # endregion
 
 # region 4. SUMMARY
-# TODO: calculate total revenue, total costs and total profit
-total_revenue = sum(revenues)
+# TODO-DONE: calculate total revenue, total costs and total profit
 total_costs = sum(costs)
+total_revenue = sum(revenues)
 # sum all key "profit" values by iterating through each nested dictionary in results
-total_profit = sum(value["profit"] for value in results.values())
+total_profit = sum(value['profit'] for value in results.values())
 # TODO: calculate average margin across all products
+avg_margin = sum(percent['margin'] for percent in results.values()) / len(results)
 # TODO: print all summary values
-
+print(f"Total costs: {total_costs}")
+print(f"Total revenue: {total_revenue}")
+print(f"Total profit: {total_profit}")
+print(f"Average margin: {avg_margin}")
 # TODO: find and print the product with the highest margin
 # TODO: find and print the product with the lowest margin
 
