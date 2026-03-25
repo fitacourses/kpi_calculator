@@ -8,8 +8,8 @@ Python script that calculates business KPIs — costs, revenue, and gross margin
 
 - [x] **1. Data Input** — collect product names, revenues, costs and profit goal from user
 - [x] **2. Calculations** — calculate profit and gross margin % for each product
-- [ ] **3. Decision Logic & Report** — evaluate each product's margin and print KPI report
-- [ ] **4. Summary** — total revenue, costs, profit, average margin, best/worst product, profit goal check
+- [x] **3. Decision Logic & Report** — evaluate each product's margin and print KPI report
+- [x] **4. Summary** — total revenue, costs, profit, average margin, best/worst product, profit goal check
 
 ## Current Structure
 
@@ -27,19 +27,19 @@ Python script that calculates business KPIs — costs, revenue, and gross margin
 # endregion
 
 # region 3. DECISION LOGIC & REPORT
-# TODO: print product name, profit and margin
-# TODO: evaluate margin with if/elif/else:
+# TODO: print product name, profit and margin ✓ DONE
+# TODO: evaluate margin with if/elif/else: ✓ DONE
 #       > 50% — "Excellent margin"
 #       20-50% — "Good margin"
 #       < 20% — "Low margin, review your costs"
 # endregion
 
 # region 4. SUMMARY
-# TODO: calculate total revenue, total costs and total profit using sum()
-# TODO: calculate average margin across all products
-# TODO: find and print the product with the highest margin
-# TODO: find and print the product with the lowest margin
-# TODO: compare total profit to the profit goal using if/else
+# TODO: calculate total revenue, total costs and total profit using sum() ✓ DONE
+# TODO: calculate average margin across all products ✓ DONE
+# TODO: find and print the product with the highest margin ✓ DONE
+# TODO: find and print the product with the lowest margin ✓ DONE
+# TODO: compare total profit to the profit goal using if/else ✓ DONE
 # endregion
 ```
 
