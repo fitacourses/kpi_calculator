@@ -38,7 +38,7 @@ for i in range(count):
     # TODO-DONE: calculate gross margin % by dividing profit by revenue for the current product, times 100 to get percent
     margin = (profit / revenues[i]) * 100
     # TODO-DONE: store profit and margin for each product and build a dictionary with keys
-    results[products[i]] = {"profit": profit, "margin": margin}
+    results[products[i]] = {'profit': profit, 'margin': margin}
 # endregion
 
 # region 3. DECISION LOGIC & REPORT
@@ -75,17 +75,24 @@ print(f"Total costs: {total_costs}")
 print(f"Total revenue: {total_revenue}")
 print(f"Total profit: {total_profit}")
 print(f"Average margin: {avg_margin}")
-# TODO-DONE: find and print the product with the highest margin
-best_product = None
-best_margin = 0
-for name, data in results.items():
 # TODO-DONE: if current product margin is higher than highest so far, update best product
+# TODO-DONE: if current product margin is lower than lowest so far, update worst product
+best_product = None
+best_margin = float('-inf') # starting point is worse than anything that's iterated
+worst_product = None
+worst_margin = float('inf') # starting point is better than anything that's iterated
+# loop through all key-value pairs in results dictionary
+for name, data in results.items():
     if data['margin'] > best_margin:
         best_margin = data['margin']
         best_product = name
+    elif data['margin'] < worst_margin:
+        worst_margin = data['margin']
+        worst_product = name
+print(f"Best product {best_product}")
+print(f"Worst product: {worst_product}")
 print(f"Best margin: {best_margin}")
-print(f"Best product: {best_product}")
-# TODO: find and print the product with the lowest margin
+print(f"Worst margin: {worst_margin}")
 
 # TODO: compare total profit to the profit goal using if/else
 #       if reached — "Goal reached!"
