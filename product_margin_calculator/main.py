@@ -1,5 +1,3 @@
-# KPI Calculator: Costs and Gross Margin
-
 # region 1. DATA INPUT
 products = []
 revenues = []
