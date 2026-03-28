@@ -33,7 +33,7 @@ Columns: `runner`, `day`, `distance`, `time`, `elevation`, `bpm`
 - [x] 1. Load data — read CSV file using pandas
 - [x] 2. Validation — check if any runner has fewer than 6 or more than 11 sessions
 - [x] 3. Calculations — calculate KPIs for each runner (distance, elevation, pace, bpm)
-- [] 4. Pace — convert MM:SS to decimal minutes per km
+- [x] 4. Pace — convert MM:SS to decimal minutes per km and calculate average pace
 - [] 5. Performance score — calculate weighted perf_score per session
 - [ ] 6. Consistency — calculate standard deviation of daily distance per runner
 - [ ] 7. Best day — determine each runner's most efficient training day

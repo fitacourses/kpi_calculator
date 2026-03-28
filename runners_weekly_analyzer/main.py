@@ -19,30 +19,28 @@ for runner, count in sessions_per_runner.items():
 # TODO-DONE: group by runner and calculate total distance, average pace, average heart rate, total elevation
 # hint: df.groupby("runner")["kolonna"].sum() / .mean()
 stats  = (df.groupby("runner")[["distance", "time", "elevation", "bpm"]].agg({"distance": "sum", "elevation": "sum", "bpm": "mean"}))
-stats["bpm"] = stats["bpm"].round(1) # round bpm to decimal
 # endregion
 
-# region 4. Pace
-# TODO-DONE: convert time column from MM:SS to decimal minutes (pace)
-# split "time" column by ":" to get minutes and seconds
+# region 4. Average pace
+# TODO-DONE: split "time" column by ":" to get minutes and seconds
 parts = df["time"].str.split(":") # split each rows "time" and give list of 2 strings: ["142", "51"]
 # get elements from parts and convert to ints, divide by 60 to get pace in decimal minutes, save in new column "pace"
 df["pace"] = parts.str[0].astype(int) + (parts.str[1].astype(int) / 60)
-
-# TODO: add average pace per runner to kpi table
-# hint: df is already has "pace" column calculated
-# use groupby and mean() to get average pace per runner
-# store in kpi["pace"]
+# add average pace per runner to stats table
+total_time = df.groupby("runner")["pace"].sum() # df already has "pace" calculated
+total_dist = df.groupby("runner")["distance"].sum()
+stats["avg_pace"] = total_time / total_dist
 # endregion
+print(stats)
 
 # region 5. Performance score
 # TODO-DONE: calculate efficiency score per session
 # efficiency score per session:
 # distance * 0.35 — more km raises score
 # 1/pace * 10 * 0.7 — faster pace raises score, 1/pace flips it, *10 scales decimal up
-# elevation/100 * 0.6 — more climbing raises score
+# elevation/50 * 0.6 — more climbing raises score
 # bpm/1000 * 0.3 — high heart rate lowers score (penalizes strain)
-df["perf_score"] = (df["distance"] * 0.35) + (1/df["pace"] * 10 * 0.7) + (df["elevation"]/100 * 0.6) - (df["bpm"]/1000 * 0.3)
+df["perf_score"] = (df["distance"] * 0.35) + (1/df["pace"] * 10 * 0.7) + (df["elevation"]/50 * 0.6) - (df["bpm"]/1000 * 0.3)
 # endregion
 
 # region 6. Consistency
