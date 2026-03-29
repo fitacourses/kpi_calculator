@@ -26,15 +26,13 @@ parts = df["time"].str.split(":") # split each rows "time" and give list of 2 st
 # get elements from parts and convert to ints, divide by 60 to get pace in decimal minutes, save in new column "pace"
 df["pace"] = parts.str[0].astype(int) + (parts.str[1].astype(int) / 60)
 # add average pace per runner to stats table
-total_time = df.groupby("runner")["pace"].sum() # df already has "pace" calculated
+total_time = df.groupby("runner")["pace"].sum()
 total_dist = df.groupby("runner")["distance"].sum()
 stats["avg_pace"] = total_time / total_dist
 # endregion
-print(stats)
 
 # region 5. Performance score
 # TODO-DONE: calculate efficiency score per session
-# efficiency score per session:
 # distance * 0.35 — more km raises score
 # 1/pace * 10 * 0.7 — faster pace raises score, 1/pace flips it, *10 scales decimal up
 # elevation/50 * 0.6 — more climbing raises score
@@ -42,34 +40,29 @@ print(stats)
 df["perf_score"] = (df["distance"] * 0.35) + (1/df["pace"] * 10 * 0.7) + (df["elevation"]/50 * 0.6) - (df["bpm"]/1000 * 0.3)
 
 # TODO: calculate average perf_score per runner and store in stats
-# hint: stats["avg_perf"] = df.groupby("runner")["perf_score"].mean()
-
+stats["avg_perf_score"] = df.groupby("runner")["perf_score"].mean()
+print(stats)
 # endregion
 
 # region 6. Best day
 # TODO: find the day with highest perf_score per runner
-# hint: df.groupby("runner")["perf_score"].idxmax() gives row index of best session
 # use that index to get the day: df.loc[...]["day"]
 # endregion
 
 # region 7. Consistency
 # TODO: calculate standard deviation of daily distance per runner
-# hint: df.groupby("runner")["distance"].std()
 # store in stats["consistency"]
 # lower std = more consistent runner
 # endregion
 
 # region 8. Leaderboard
 # TODO: ask user to input a day number (1-7) or 0 for full weekly leaderboard
-# hint: day = int(input("Enter day (0 for weekly leaderboard): "))
 # if day == 0 — print full stats sorted by winner_score
 # else — filter df by day and print sorted by perf_score
 # endregion
 
 # region 9. Winner score
 # TODO: combine avg perf_score and consistency into final ranking
-# hint: stats["avg_perf"] = df.groupby("runner")["perf_score"].mean()
-# hint: winner_score = avg_perf * 0.7 + (1/consistency) * 0.3
 # print winner — runner with highest winner_score
 # endregion
 
