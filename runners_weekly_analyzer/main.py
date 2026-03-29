@@ -10,9 +10,9 @@ df = pd.read_csv("data.csv")
 sessions_per_runner = df.groupby("runner")["day"].count()
 for runner, count in sessions_per_runner.items():
     if count < 6:
-        print(f"{runner}: You haven't ran enough sessions - {count}! Six is minimum. LACE UP!")
+        print(f"{runner}: You haven't ran enough sessions - {count}! Six is minimum for the week. LACE UP!")
     elif count > 11:
-        print(f"{runner}: You've ran too many sessions - {count}! Eleven is maximum. You've overworked! Try removing excess sessions.")
+        print(f"{runner}: You've ran too many sessions - {count}! Eleven is maximum for the week. Try removing excess sessions.")
 # endregion
 
 # region 3. Calculations
@@ -22,8 +22,8 @@ stats  = (df.groupby("runner")[["distance", "elevation", "bpm"]].agg({"distance"
 
 # region 4. Average pace
 # TODO-DONE: split "time" column by ":" to get minutes and seconds
-parts = df["time"].str.split(":") # split each rows "time" and give list of 2 strings: ["142", "51"]
-# get elements from parts and convert to ints, divide by 60 to get pace in decimal minutes, save in new column "pace"
+parts = df["time"].str.split(":") # split each rows "time" and give list of elements
+# get elements from parts and convert to ints, divide by 60 to get pace in decimal minutes, store in new column "pace"
 df["pace"] = parts.str[0].astype(int) + (parts.str[1].astype(int) / 60)
 # add average pace per runner to stats table
 total_time = df.groupby("runner")["pace"].sum()
@@ -39,20 +39,21 @@ stats["avg_pace"] = total_time / total_dist
 # bpm/1000 * 0.3 — high heart rate lowers score (penalizes strain)
 df["perf_score"] = (df["distance"] * 0.35) + (1/df["pace"] * 10 * 0.7) + (df["elevation"]/50 * 0.6) - (df["bpm"]/1000 * 0.3)
 
-# TODO: calculate average perf_score per runner and store in stats
+# TODO-DONE: calculate average perf_score per runner and store in stats
 stats["avg_perf_score"] = df.groupby("runner")["perf_score"].mean()
-print(stats)
 # endregion
 
 # region 6. Best day
 # TODO: find the day with highest perf_score per runner
-# use that index to get the day: df.loc[...]["day"]
+daily_perf = df.groupby(["runner", "day"])["perf_score"].mean() # group by runner and day, average performance per day
+day_names = {1: "Pirmdiena", 2: "Otrdiena", 3: "Trešdiena", 4: "Ceturtdiena", 5: "Piektdiena", 6: "Sestdiena", 7: "Svētdiena"}
+best_day = daily_perf.groupby("runner").idxmax().str[1] # find day with highest average performance for runners, extract day number
+best_day = best_day.map(day_names)
+stats["best_day"] = best_day
 # endregion
 
 # region 7. Consistency
 # TODO: calculate standard deviation of daily distance per runner
-# store in stats["consistency"]
-# lower std = more consistent runner
 # endregion
 
 # region 8. Leaderboard
