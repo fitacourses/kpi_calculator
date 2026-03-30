@@ -62,6 +62,14 @@ stats["power_ranking"] = (stats["avg_perf_score"] * 0.7) + (1/stats["consistency
 
 # region 9. Leaderboard
 # TODO-DONE: ask user to input for example "Friday" for daily leaderboard or "full" for full weekly leaderboard
+day = input("Enter day (e.g. 'Friday') or 'Full' for weekly leaderboard: ")
+if day == "full":
+    leaderboard = stats[["avg_perf_score", "consistency", "power_ranking"]].sort_values("power_ranking", ascending=False)
+    print(leaderboard)
+else:
+    day_df = df[df["day"] == day] # filter df to only rows where day matches user input
+    leaderboard = day_df.groupby("runner")["perf_score"].mean().sort_values(ascending=False) # sort best first
+    print(leaderboard)
 # endregion
 
 # region 10. Export
