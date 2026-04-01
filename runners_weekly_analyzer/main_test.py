@@ -13,8 +13,13 @@ test_data = {
 df = pd.DataFrame(test_data)
 
 sessions_per_runner = df.groupby("runner")["day"].count()
+warnings = {}
 for runner, count in sessions_per_runner.items():
     if count < 6:
-        print(f"{runner}: You haven't ran enough sessions - {count}! Six is minimum. LACE UP!")
+        warnings[runner] = f"Too few sessions ({count})"
     elif count > 11:
-        print(f"{runner}: You've ran too many sessions - {count}! Eleven is maximum. You've overworked! Try removing excess sessions.")
+        warnings[runner] = f"Too many sessions ({count})"
+    else:
+        warnings[runner] = ""
+
+print(warnings)
