@@ -1,53 +1,135 @@
-# KPI File Reader — Weekly Running Competition
+# 📌 Running Data Analysis Project
 
-Python script that reads running data from a CSV file and calculates weekly KPIs and efficiency scores for a group of runners competing against each other.
+## 📌 Overview
+This project reads weekly running session data from a CSV file and generates:
 
-**Status:** In Progress
+- Individual runner statistics
+- Performance and consistency scores
+- Daily and weekly leaderboards
+- A full Excel report (`results.xlsx`)
 
----
-
-## Dataset
-
-Weekly training data for 6 runners across 7 days. Each runner logs 6–11 sessions per week, some days with two sessions.
-
-Columns: `runner`, `day`, `distance`, `time`, `elevation`, `bpm`
+All calculations are done automatically by a single Python script.
 
 ---
 
-## KPIs Calculated
+## 📂 Dataset Format (`data.csv`)
 
-- Total distance per runner (km)
-- Total elevation gain per runner (m)
-- Average pace per runner (min/km, converted from MM:SS)
-- Average heart rate per runner (bpm)
-- Performance score per session — weighted formula using distance, pace, elevation and heart rate
-- Best training day per runner — day with highest performance score
-- Average performance score per runner
-- Consistency score per runner — standard deviation of daily distance (lower = more consistent)
-- Weekly winner score — combined average performance and consistency score
+Your input file **must include the following columns**:
 
----
+| Column     | Description                  |
+|------------|------------------------------|
+| runner     | Runner's name                |
+| day        | Day of the week              |
+| distance   | Distance run (km)            |
+| time       | Duration in MM:SS            |
+| elevation  | Elevation gain (m)           |
+| bpm        | Average heart rate (bpm)     |
 
-## Stages
-
-- [x] 1. Load data — read CSV file using pandas
-- [x] 2. Validation — check if any runner has fewer than 6 or more than 11 sessions
-- [x] 3. Calculations — calculate KPIs for each runner (distance, elevation, pace, bpm)
-- [x] 4. Pace — convert MM:SS to decimal minutes per km and calculate average pace
-- [ ] 5. Performance score — calculate weighted perf_score per session
-- [ ] 6. Best day — determine each runner's most efficient training day
-- [ ] 7. Consistency — calculate standard deviation of daily distance per runner
-- [ ] 8. Winner score — combine average performance and consistency into final ranking
-- [ ] 9. Leaderboard — print daily or weekly leaderboard based on user input
-- [ ] 10. Export — save final leaderboard to results.xlsx using openpyxl
+✅ Each runner should log **6–11 sessions per week** — the script warns you if not.
 
 ---
 
-## Requirements
+## 📊 KPIs the Script Calculates
 
-- Max 40 lines of code (excluding comments and blank lines)
-- At least one `.txt` or `.csv` file for data storage
-- Data aggregation — grouping, summarizing
-- At least one `if/elif/else` block
-- At least one `for` or `while` loop
-- Only `pandas` and `openpyxl` allowed
+### ✅ Total Distance
+Sum of all distance values for the runner.
+
+### ✅ Total Elevation
+Total climbing in meters.
+
+### ✅ Average Heart Rate
+Average BPM across all sessions.
+
+### ✅ Average Pace
+The script:
+- Converts every `MM:SS` time into minutes
+- Calculates the average pace per km
+- Converts it back into a clean `MM:SS` format
+
+---
+
+### ✅ Performance Score
+Each session gets a score based on:
+- Distance
+- Pace
+- Elevation
+- Heart rate
+
+---
+
+### ✅ Weekly Average Performance
+Average of all performance scores.
+
+---
+
+### ✅ Consistency Score
+Standard deviation of performance scores.
+
+- Lower = more consistent
+
+---
+
+### ✅ Power Ranking
+A combined score based on:
+- Performance
+- Consistency
+
+➡️ Higher score = stronger training week.
+
+---
+
+### ✅ Leaderboards
+
+- Weekly leaderboard (overall ranking)
+- Daily leaderboards (best performance per day)
+
+---
+
+## ⚙️ Script Workflow (Step-By-Step)
+
+1. Load data from CSV  
+2. Check session counts and apply warnings  
+3. Calculate base stats (distance, elevation, BPM)  
+4. Convert `MM:SS` times into minutes and compute pace  
+5. Format pace back into `MM:SS`  
+6. Calculate performance score for each session  
+7. Compute weekly averages  
+8. Calculate consistency  
+9. Generate power ranking  
+10. Build weekly and daily leaderboards  
+11. Round values for readability  
+12. Export everything to `results.xlsx`  
+
+---
+
+## 📁 Output
+
+✅ `results.xlsx` contains:
+
+- Weekly Stats sheet  
+- Weekly Leaderboard sheet  
+- One sheet per day with daily rankings  
+
+All formatted clearly and ready to read.
+
+---
+
+## 🛠 Requirements
+
+You will need:
+
+- Python 3.10+
+- pandas
+- openpyxl
+- A valid `data.csv` file
+
+---
+
+## 🎓 Assignment Requirements Covered
+
+This project includes:
+
+- ✅ At least one loop  
+- ✅ At least one if-statement  
+- ✅ File reading and writing  
+- ✅ Data processing  
