@@ -1,6 +1,7 @@
 # 📌 Running Data Analysis Project
 
 ## 📌 Overview
+
 This project reads weekly running session data from a CSV file and generates:
 
 - Individual runner statistics
@@ -32,16 +33,21 @@ Your input file **must include the following columns**:
 ## 📊 KPIs the Script Calculates
 
 ### ✅ Total Distance
+
 Sum of all distance values for the runner.
 
 ### ✅ Total Elevation
+
 Total climbing in meters.
 
 ### ✅ Average Heart Rate
+
 Average BPM across all sessions.
 
 ### ✅ Average Pace
+
 The script:
+
 - Converts every `MM:SS` time into minutes
 - Calculates the average pace per km
 - Converts it back into a clean `MM:SS` format
@@ -49,7 +55,9 @@ The script:
 ---
 
 ### ✅ Performance Score
+
 Each session gets a score based on:
+
 - Distance
 - Pace
 - Elevation
@@ -58,11 +66,13 @@ Each session gets a score based on:
 ---
 
 ### ✅ Weekly Average Performance
+
 Average of all performance scores.
 
 ---
 
 ### ✅ Consistency Score
+
 Standard deviation of performance scores.
 
 - Lower = more consistent
@@ -70,7 +80,9 @@ Standard deviation of performance scores.
 ---
 
 ### ✅ Power Ranking
+
 A combined score based on:
+
 - Performance
 - Consistency
 
@@ -132,4 +144,4 @@ This project includes:
 - ✅ At least one loop  
 - ✅ At least one if-statement  
 - ✅ File reading and writing  
-- ✅ Data processing  
+- ✅ Data processing
