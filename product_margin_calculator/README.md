@@ -1,53 +1,126 @@
-# KPI Calculator
+# 📌 KPI Calculator: Costs & Gross Margin
 
-Python script that calculates business KPIs — costs, revenue, and gross margin — based on manually entered data.
+## 📌 Overview
 
-## Status: In Progress
+This project is a simple Python-based KPI calculator that allows the user to input product data and generates:
 
-## Stages
+- Profit per product
+- Gross margin (%) per product
+- Margin evaluation (Excellent / Good / Low)
+- Total business performance summary
+- Best and worst performing products
+- Profit goal comparison
 
-- [x] **1. Data Input** — collect product names, revenues, costs and profit goal from user
-- [x] **2. Calculations** — calculate profit and gross margin % for each product
-- [x] **3. Decision Logic & Report** — evaluate each product's margin and print KPI report
-- [x] **4. Summary** — total revenue, costs, profit, average margin, best/worst product, profit goal check
+All calculations are done through a single Python script using user input.
 
-## Current Structure
+---
 
-```python
-# region 1. DATA INPUT
-# TODO: ask the user for a profit goal ✓ DONE
-# TODO: collect revenue and costs for each product ✓ DONE
-# TODO: if revenue is 0 or less, print a warning and skip this product ✓ DONE
-# endregion
+## 📂 How It Works
 
-# region 2. CALCULATIONS
-# TODO: calculate profit (revenue - costs) ✓ DONE
-# TODO: calculate gross margin % (profit / revenue * 100) ✓ DONE
-# TODO: store profit and margin in results dictionary ✓ DONE
-# endregion
+The script asks the user to enter:
 
-# region 3. DECISION LOGIC & REPORT
-# TODO: print product name, profit and margin ✓ DONE
-# TODO: evaluate margin with if/elif/else: ✓ DONE
-#       > 50% — "Excellent margin"
-#       20-50% — "Good margin"
-#       < 20% — "Low margin, review your costs"
-# endregion
+- A **profit goal**
+- Number of products
+- For each product:
+  - Product name
+  - Revenue
+  - Cost
 
-# region 4. SUMMARY
-# TODO: calculate total revenue, total costs and total profit using sum() ✓ DONE
-# TODO: calculate average margin across all products ✓ DONE
-# TODO: find and print the product with the highest margin ✓ DONE
-# TODO: find and print the product with the lowest margin ✓ DONE
-# TODO: compare total profit to the profit goal using if/else ✓ DONE
-# endregion
-```
+⚠️ If revenue is **0 or negative**, the product is skipped with a warning.
 
-## Requirements
+---
 
-- Max 50 lines of code (excluding comments and blank lines)
-- No custom functions (def not allowed)
-- At least one list and one dictionary for data storage
-- No file I/O — all data entered via input()
-- At least one if/elif/else block
-- At least one for or while loop
+## 📊 KPIs Calculated
+
+### ✅ Profit
+
+`Profit = Revenue - Cost`
+
+---
+
+### ✅ Gross Margin (%)
+
+`Margin = (Profit / Revenue) * 100`
+
+---
+
+### ✅ Margin Evaluation
+
+- **≥ 50%** → Excellent margin  
+- **20% – 49%** → Good margin  
+- **< 20%** → Low margin (review costs)
+
+---
+
+### ✅ Totals
+
+- Total Revenue
+- Total Costs
+- Total Profit
+
+---
+
+### ✅ Average Margin
+
+Average margin across all valid products.
+
+---
+
+### ✅ Best & Worst Product
+
+- Best product = highest margin
+- Worst product = lowest margin
+
+---
+
+### ✅ Profit Goal Check
+
+- If total profit ≥ goal → ✅ Goal reached  
+- If not → shows how much is missing  
+
+---
+
+## ⚙️ Script Workflow (Step-by-Step)
+
+1. Ask user for profit goal  
+2. Ask number of products  
+3. Loop through product inputs  
+4. Validate revenue (skip invalid entries)  
+5. Store data in lists  
+6. Calculate profit and margin per product  
+7. Store results in a dictionary  
+8. Print KPI report with evaluations  
+9. Calculate totals and averages  
+10. Identify best and worst products  
+11. Compare total profit to goal  
+
+---
+
+## 📁 Output
+
+Console output includes:
+
+- KPI report per product  
+- Margin evaluation  
+- Business summary  
+- Best & worst product  
+- Profit goal result  
+
+---
+
+## 🛠 Requirements
+
+- Python 3.x  
+- No external libraries needed  
+
+---
+
+## 🎓 Assignment Requirements Covered
+
+This project includes:
+
+- ✅ Loops (`for`)  
+- ✅ Conditional logic (`if / elif / else`)  
+- ✅ Lists and dictionaries  
+- ✅ User input handling  
+- ✅ Data processing and calculations
