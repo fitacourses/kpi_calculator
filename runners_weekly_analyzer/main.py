@@ -1,4 +1,4 @@
-# region 1. Load data
+# region 1. TODO-DONE: Load data
 import pandas as pd
 df = pd.read_csv("data.csv") # pandas "short for pd" reads data and stores table as "df" - dataFrame
 # endregion
