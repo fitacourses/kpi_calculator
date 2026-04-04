@@ -1,2 +1,13 @@
 *.code-workspace
 *.xlsx
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+
+# VS Code
+.vscode/
