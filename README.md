@@ -82,9 +82,9 @@ Example:
 
 ```bash
 pip install pandas openpyxl matplotlib requests beautifulsoup4
-python main.py
+python main.py 
 
----
+```
 
 ## 📌 Notes
 
@@ -98,7 +98,5 @@ python main.py
 ## 🏫 About the Course
 
 **FITA** offers practical, hands-on IT courses designed for people at all levels. This course is built around real-world data tasks, so that everything you learn can be applied immediately.
-
-> *"We will take an exciting journey together — from Python syntax basics to building your own independent data analysis project."*
 
 ---
