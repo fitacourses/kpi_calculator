@@ -33,11 +33,29 @@ grouped = df.groupby("runner")
 avg_perf_score = grouped[["distance_score", "pace_score", "elevation_score", "bpm_score"]].mean()
 # endregion
 
-# region 7. TODO Build stacked bar chart
+# region 7. TODO-DONE: Build stacked bar chart
+# create figure and axes and save into fig and ax
+fig, ax = plt.subplots()
+
+# plot one stacked bar of average performance score per runner
+avg_perf_score.plot(
+    kind="bar", 
+    stacked=True,
+    # store the plot in ax, to customize later
+    ax=ax)
 # endregion
 
-# region 8. TODO: Customize
+# region 8. TODO-DONE: Customize
+ax.set_title("Runner Performance Comparison")
+ax.set_xlabel("Runner")
+ax.set_ylabel("Average Performance Score")
+
+# "x" axe labels/numbers rotation
+ax.tick_params(axis="x", rotation=45)
+# adjust spacing, so it fits in figure
+plt.tight_layout()
 # endregion
 
-# region 9. TODO: Show result
+# region 9. TODO-DONE: Show result
+plt.savefig("runner_performance.png")
 # endregion
