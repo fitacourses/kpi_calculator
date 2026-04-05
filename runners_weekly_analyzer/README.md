@@ -1,13 +1,14 @@
-# 📌 Running Data Analysis Project
+# 📊 Runners Weekly Analyzer
 
 ## 📌 Overview
 
 This project reads weekly running session data from a CSV file and generates:
 
-- Individual runner statistics
-- Performance and consistency scores
-- Daily and weekly leaderboards
-- A full Excel report (`results.xlsx`)
+- Individual runner statistics  
+- Normalized performance scores  
+- Component-based performance breakdown  
+- Daily and weekly leaderboards  
+- A full Excel report (`results.xlsx`)  
 
 All calculations are done automatically by a single Python script.
 
@@ -15,46 +16,41 @@ All calculations are done automatically by a single Python script.
 
 ## 📂 Dataset Format (`data.csv`)
 
-Your input file **must include the following columns**:
+Your input file must include the following columns:
 
-| Column     | Description                  |
-|------------|------------------------------|
-| runner     | Runner's name                |
-| day        | Day of the week              |
-| distance   | Distance run (km)            |
-| time       | Duration in MM:SS            |
-| elevation  | Elevation gain (m)           |
-| bpm        | Average heart rate (bpm)     |
-
-✅ Each runner should log **6–11 sessions per week** — the script warns you if not.
+| Column     | Description              |
+|------------|--------------------------|
+| runner     | Runner name              |
+| day        | Day of the week          |
+| distance   | Distance run (km)        |
+| time       | Duration (MM:SS)         |
+| elevation  | Elevation gain (m)       |
+| bpm        | Average heart rate (bpm) |
 
 ---
 
 ## 📊 KPIs the Script Calculates
 
 ### ✅ Total Distance
-
-Sum of all distance values for the runner.
+Total distance per runner.
 
 ### ✅ Total Elevation
-
-Total climbing in meters.
+Total elevation gain per runner.
 
 ### ✅ Average Heart Rate
-
-Average BPM across all sessions.
+Average BPM per runner.
 
 ### ✅ Average Pace
 
 The script:
 
-- Converts every `MM:SS` time into minutes
-- Calculates the average pace per km
-- Converts it back into a clean `MM:SS` format
+- Converts `MM:SS` into minutes  
+- Calculates average pace per runner  
+- Converts result back into `MM:SS`  
 
 ---
 
-### ✅ Performance Score
+## ✅ Performance Score
 
 Each session receives a normalized performance score based on:
 
@@ -62,95 +58,102 @@ Each session receives a normalized performance score based on:
 - Pace (8:00–3:30 min/km)
 - Elevation (50–500 m)
 
-Each metric is normalized to a 0–1 range and combined into a base score:
+Each metric is normalized to a **0–1 range**:
 
+```
 Base Score = Distance + Pace + Elevation
+```
 
-Heart rate is applied as a multiplier:
+Heart rate is applied as an efficiency multiplier:
 
+```
 Final Score = Base Score × BPM Multiplier
+```
 
-Lower heart rate results in a higher multiplier (1.00–1.15), rewarding more efficient runs.
+### BPM Multiplier
 
----
-
-### ✅ Weekly Average Performance
-
-Average of all performance scores.
-
----
-
-### ✅ Consistency Score
-
-Standard deviation of performance scores.
-
-- Lower = more consistent
+- Range: **1.00 – 1.20**
+- Lower heart rate → higher multiplier
+- Rewards efficient runs without dominating performance
 
 ---
 
-### ✅ Power Ranking
+## 📊 Weekly Performance Metrics
 
-A combined score based on:
+The script calculates:
 
-- Performance
-- Consistency
+- Average Performance Score  
+- Average Distance Score  
+- Average Pace Score  
+- Average Elevation Score  
+- Average BPM Bonus  
 
-➡️ Higher score = stronger training week.
-
----
-
-### ✅ Leaderboards
-
-- Weekly leaderboard (overall ranking)
-- Daily leaderboards (best performance per day)
+This allows you to understand **why a runner performed well**.
 
 ---
 
-## ⚙️ Script Workflow (Step-By-Step)
+## 🏆 Leaderboards
 
-1. Load data from CSV  
-2. Check session counts and apply warnings  
-3. Calculate base stats (distance, elevation, BPM)  
-4. Convert `MM:SS` times into minutes and compute pace  
-5. Format pace back into `MM:SS`  
-6. Calculate performance score for each session  
+### Weekly Leaderboard
+
+Runners ranked by:
+
+- Average performance score
+
+### Daily Leaderboards
+
+Each day shows:
+
+- Best runner  
+- Performance score per session  
+
+---
+
+## ⚙️ Script Workflow
+
+1. Load CSV file  
+2. Calculate base statistics  
+3. Convert time to pace  
+4. Normalize performance metrics  
+5. Apply BPM multiplier  
+6. Calculate session scores  
 7. Compute weekly averages  
-8. Calculate consistency  
-9. Generate power ranking  
-10. Build weekly and daily leaderboards  
-11. Round values for readability  
-12. Export everything to `results.xlsx`  
+8. Build leaderboards  
+9. Round values  
+10. Export to Excel  
 
 ---
 
 ## 📁 Output
 
-✅ `results.xlsx` contains:
+The script generates:
 
-- Weekly Stats sheet  
-- Weekly Leaderboard sheet  
-- One sheet per day with daily rankings  
-
-All formatted clearly and ready to read.
+- Weekly Stats  
+- Weekly Leaderboard  
+- One sheet per day  
 
 ---
 
 ## 🛠 Requirements
 
-You will need:
-
 - Python 3.10+
 - pandas
 - openpyxl
-- A valid `data.csv` file
+
+Install dependencies:
+
+```bash
+pip install pandas openpyxl
+```
 
 ---
 
-## 🎓 Assignment Requirements Covered
+## 🎯 Project Goal
 
-This project includes:
+This project demonstrates:
 
-- ✅ At least one loop  
-- ✅ At least one if-statement  
-- ✅ File reading and writing  
-- ✅ Data processing
+- Data processing with pandas  
+- Normalized scoring systems  
+- Performance analytics  
+- Leaderboard generation  
+- Excel export automation

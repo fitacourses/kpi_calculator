@@ -1,9 +1,9 @@
-# region 1. TODO-DONE: Load data
+# region 1. Load data
 import pandas as pd
 df = pd.read_csv("data.csv") # read the CSV file into a pandas DataFrame
 # endregion
 
-# region 2. TODO-DONE: Stats calculations
+# region 2. Stats calculations
 # group rows by runner and calculate the stats
 grouped = df.groupby("runner")
 
@@ -12,9 +12,7 @@ stats = grouped[["distance", "elevation", "bpm"]].agg({
     "elevation": "sum",
     "bpm": "mean"
 })
-# endregion
 
-# region 3. TODO-DONE: Average pace  
 # split time column into minutes and seconds separately
 parts = df["time"].str.split(":")
 
@@ -27,7 +25,6 @@ df["pace"] = df["minutes_total"] / df["distance"]
 # calculate each runner's average pace
 total_time = df.groupby("runner")["minutes_total"].sum()
 total_dist = df.groupby("runner")["distance"].sum()
-
 avg_pace = total_time / total_dist
 stats["avg_pace"] = avg_pace
 
@@ -46,10 +43,9 @@ for runner in stats.index:
 
     # format the result as MM:SS
     stats.loc[runner, "avg_pace"] = f"{minutes}:{seconds:02d}"
-
 # endregion
 
-# region 4. TODO-DONE: Scoring ranges
+# region 3. Performance scoring
 DIST_MIN = 0
 DIST_MAX = 30
 
@@ -64,9 +60,7 @@ BPM_HIGH = 160
 
 BPM_MULT_MIN = 1.00
 BPM_MULT_MAX = 1.20
-# endregion
 
-# region 5. TODO-DONE: Scoring calculations
 # normalize all values to a 0-1 score based on defined min/max ranges
 
 # longer distances gets higher scores
@@ -115,7 +109,7 @@ stats["avg_elevation_score"] = df.groupby("runner")["elevation_score"].mean()
 stats["avg_bpm_bonus"] = df.groupby("runner")["bpm_bonus"].mean()
 # endregion
 
-# region 6. TODO-DONE: Leaderboard
+# region 4. Leaderboard
 # sort runners by average performance score
 weekly_leaderboard = stats[[
     "avg_perf_score",
@@ -139,7 +133,7 @@ for day in df["day"].unique():
     daily_leaderboards[day] = daily_leaderboard
 # endregion
 
-# region 7. TODO-DONE: Rounding numbers
+# region 5. Output
 # round numeric values in stats table
 stats = stats.round(2)
 
@@ -152,9 +146,7 @@ weekly_leaderboard = weekly_leaderboard.round(2)
 # round each daily leaderboard
 for day in daily_leaderboards:
     daily_leaderboards[day] = daily_leaderboards[day].round(2)
-# endregion
 
-# region 8. TODO-DONE: Export
 # write all tables to results.xlsx, each on its own sheet
 with pd.ExcelWriter("results.xlsx") as writer:
     stats.to_excel(writer, sheet_name="Weekly Stats")
