@@ -115,24 +115,15 @@ stats["avg_elevation_score"] = df.groupby("runner")["elevation_score"].mean()
 stats["avg_bpm_bonus"] = df.groupby("runner")["bpm_bonus"].mean()
 # endregion
 
-# region 6. TODO-DONE: Consistency
-# calculate the standard deviation of each runner's performance scores
-# a lower value means the runner was more consistent
-stats["consistency"] = df.groupby("runner")["perf_score"].std()
-# endregion
-
-# region 7. TODO-DONE: Power ranking
-# create the final power ranking score
-# average performance has a bigger weight, while consistency also helps
-performance_weight = stats["avg_perf_score"] * 0.7
-consistency_weight = (1 / stats["consistency"]) * 0.3
-stats["power_ranking"] = performance_weight + consistency_weight
-
-# endregion
-
-# region 8. TODO-DONE: Leaderboard
-# sort runners by power ranking from highest to lowest
-weekly_leaderboard = stats[["avg_perf_score", "consistency", "power_ranking"]].sort_values("power_ranking", ascending=False)
+# region 6. TODO-DONE: Leaderboard
+# sort runners by average performance score
+weekly_leaderboard = stats[[
+    "avg_perf_score",
+    "avg_distance_score",
+    "avg_pace_score",
+    "avg_elevation_score",
+    "avg_bpm_bonus"
+]].sort_values("avg_perf_score", ascending=False)
 
 # create a separate leaderboard for each day
 daily_leaderboards = {}
@@ -148,7 +139,7 @@ for day in df["day"].unique():
     daily_leaderboards[day] = daily_leaderboard
 # endregion
 
-# region 9. TODO-DONE: Rounding numbers
+# region 7. TODO-DONE: Rounding numbers
 # round numeric values in stats table
 stats = stats.round(2)
 
@@ -163,7 +154,7 @@ for day in daily_leaderboards:
     daily_leaderboards[day] = daily_leaderboards[day].round(2)
 # endregion
 
-# region 10. TODO-DONE: Export
+# region 8. TODO-DONE: Export
 # write all tables to results.xlsx, each on its own sheet
 with pd.ExcelWriter("results.xlsx") as writer:
     stats.to_excel(writer, sheet_name="Weekly Stats")
