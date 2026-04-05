@@ -87,7 +87,7 @@ BPM_MULT_MIN = 1.00
 BPM_MULT_MAX = 1.15
 # endregion
 
-# region 7. TODO-DONE: Average performance score
+# region 7. TODO-DONE: Scoring calculations
 # normalize all values to a 0-1 score based on defined min/max ranges
 
 # longer distances gets higher scores
@@ -95,7 +95,7 @@ df["distance_score"] = (
     (df["distance"] - DIST_MIN) / (DIST_MAX - DIST_MIN)
 ).clip(0, 1)
 
-# lower pace gets higher score
+# lower pace gets higher scores
 df["pace_score"] = (
     (PACE_SLOW - df["pace"]) / (PACE_SLOW - PACE_FAST)
 ).clip(0, 1)
@@ -110,13 +110,12 @@ df["bpm_score"] = (
     (BPM_HIGH - df["bpm"]) / (BPM_HIGH - BPM_LOW)
 ).clip(0, 1)
 
-# convert normalized bpm score (0-1) into multiplier (1.00-1.15)
+# convert normalized bpm scores (0-1) into multiplier (1.00-1.15)
 # higher bpm score gives larger multiplier bonus
 df["bpm_multiplier"] = (
     BPM_MULT_MIN + df["bpm_score"] * (BPM_MULT_MAX - BPM_MULT_MIN)
 )
-
-# base score from main performance components
+# combine main score components into one base score
 df["base_score"] = (
     df["distance_score"] +
     df["pace_score"] +
@@ -126,8 +125,11 @@ df["base_score"] = (
 # apply bpm multiplier to get final performance score
 df["perf_score"] = df["base_score"] * df["bpm_multiplier"]
 
-# calculate how much bpm contributed as a bonus
+# calculate how much extra score bpm added
 df["bpm_bonus"] = df["perf_score"] - df["base_score"]
+
+# average performance score for each runner
+stats["avg_perf_score"] = df.groupby("runner")["perf_score"].mean()
 # endregion
 
 # region 8. TODO-DONE: Consistency
