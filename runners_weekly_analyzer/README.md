@@ -31,50 +31,27 @@ Your input file must include the following columns:
 
 ## 📊 KPIs the Script Calculates
 
-### ✅ Total Distance
-Total distance per runner.
-
-### ✅ Total Elevation
-Total elevation gain per runner.
-
-### ✅ Average Heart Rate
-Average BPM per runner.
-
-### ✅ Average Pace
-
-The script:
-
-- Converts `MM:SS` into minutes  
-- Calculates average pace per runner  
-- Converts result back into `MM:SS`  
+- ✅ Total Distance  
+- ✅ Total Elevation  
+- ✅ Average Heart Rate  
+- ✅ Average Pace  
 
 ---
 
 ## ✅ Performance Score
 
-Each session receives a normalized performance score based on:
+Each session receives a normalized **base performance score (0–1 per metric)** based on:
 
 - Distance (0–30 km)
 - Pace (8:00–3:30 min/km)
 - Elevation (50–500 m)
 
-Each metric is normalized to a **0–1 range**:
+Heart rate is applied as an **efficiency multiplier (1.00–1.20)**.
 
 ```
 Base Score = Distance + Pace + Elevation
-```
-
-Heart rate is applied as an efficiency multiplier:
-
-```
 Final Score = Base Score × BPM Multiplier
 ```
-
-### BPM Multiplier
-
-- Range: **1.00 – 1.20**
-- Lower heart rate → higher multiplier
-- Rewards efficient runs without dominating performance
 
 ---
 

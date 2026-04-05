@@ -62,7 +62,6 @@ BPM_MULT_MIN = 1.00
 BPM_MULT_MAX = 1.20
 
 # normalize all values to a 0-1 score based on defined min/max ranges
-
 # longer distances gets higher scores
 df["distance_score"] = (
     (df["distance"] - DIST_MIN) / (DIST_MAX - DIST_MIN)
@@ -83,7 +82,7 @@ df["bpm_score"] = (
     (BPM_HIGH - df["bpm"]) / (BPM_HIGH - BPM_LOW)
 ).clip(0, 1)
 
-# convert normalized bpm scores (0-1) into multiplier (1.00-1.15)
+# convert normalized bpm scores (0-1) into multiplier
 # higher bpm score gives larger multiplier bonus
 df["bpm_multiplier"] = (
     BPM_MULT_MIN + df["bpm_score"] * (BPM_MULT_MAX - BPM_MULT_MIN)
