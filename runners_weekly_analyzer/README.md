@@ -56,12 +56,21 @@ The script:
 
 ### ✅ Performance Score
 
-Each session gets a score based on:
+Each session receives a normalized performance score based on:
 
-- Distance
-- Pace
-- Elevation
-- Heart rate
+- Distance (0–30 km)
+- Pace (8:00–3:30 min/km)
+- Elevation (50–500 m)
+
+Each metric is normalized to a 0–1 range and combined into a base score:
+
+Base Score = Distance + Pace + Elevation
+
+Heart rate is applied as a multiplier:
+
+Final Score = Base Score × BPM Multiplier
+
+Lower heart rate results in a higher multiplier (1.00–1.15), rewarding more efficient runs.
 
 ---
 

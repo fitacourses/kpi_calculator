@@ -39,7 +39,7 @@ A terminal-based script that calculates business KPIs — revenue, costs, profit
 
 > *Data Processing — CSV files, pandas, and openpyxl.*
 
-A script that reads weekly running training data from a CSV file and calculates performance KPIs for a group of runners. It processes total distance, elevation, average pace, heart rate, session performance scores, consistency scores, and a final weekly power ranking. The results are exported into an Excel report with leaderboard sheets.
+A script that reads weekly running training data from a CSV file and calculates normalized performance KPIs for a group of runners. It processes total distance, elevation, average pace, heart rate, session performance scores, consistency scores, and a final weekly power ranking. The results are exported into an Excel report with leaderboard sheets.
 
 ---
 

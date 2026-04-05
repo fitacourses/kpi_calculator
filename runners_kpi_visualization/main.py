@@ -54,7 +54,7 @@ ax.set_title("Runner Performance Comparison")
 ax.set_xlabel("Runner")
 ax.set_ylabel("Average Performance Score")
 
-# rename columns for cleaner legend
+# rename columns for cleaner legend names
 ax.legend(["Distance", "Pace", "Elevation", "Heart Rate"])
 
 # "x" axe labels/numbers rotation
