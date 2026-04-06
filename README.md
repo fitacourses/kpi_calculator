@@ -39,7 +39,7 @@ A terminal-based script that calculates business KPIs — revenue, costs, profit
 
 > *Data Processing — CSV files, pandas, and openpyxl.*
 
-A script that reads weekly running training data from a CSV file and calculates normalized performance KPIs for a group of runners. It processes total distance, elevation, average pace, heart rate, session performance scores, consistency scores, and a final weekly power ranking. The results are exported into an Excel report with leaderboard sheets.
+A script that reads weekly running training data from a CSV file and calculates normalized performance KPIs for a group of runners. It processes total distance, elevation, average pace, heart rate, and session performance scores using a normalized scoring model with a BPM efficiency multiplier. The results are exported into an Excel report with weekly statistics and leaderboard sheets.
 
 ---
 
@@ -47,7 +47,7 @@ A script that reads weekly running training data from a CSV file and calculates 
 
 > *Visualization — pandas and matplotlib.*
 
-A Python script that reads running session data from a CSV file and visualizes runner performance using a stacked bar chart. Each session is scored based on distance, pace, elevation, and heart rate, then the average score per runner is calculated. The final chart helps compare runners and shows which score components contributed most to their overall performance.
+A Python script that reads running session data from a CSV file and visualizes runner performance using a stacked bar chart. Each session is scored using normalized distance, pace, and elevation metrics, with heart rate applied as an efficiency multiplier. The final chart helps compare runners and shows which score components contributed most to their overall performance.
 
 ---
 
