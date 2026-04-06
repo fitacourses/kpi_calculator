@@ -43,8 +43,7 @@ Each session receives a normalized **base performance score (0–1 per metric)**
 - Distance (0–30 km)
 - Pace (8:00–3:30 min/km)
 - Elevation (50–500 m)
-
-Heart rate is applied as an **efficiency multiplier (1.00–1.20)**.
+- Heart rate is applied as an efficiency multiplier (1.00–1.20)
 
 ```
 Base Score = Distance + Pace + Elevation
