@@ -12,3 +12,14 @@ import csv
 import re
 
 # endregion
+
+# region 2. Load webpage
+# stores the page address
+url = "https://www.sportlat.lv/kalendars/viss"
+
+# sends request to the website
+response = requests.get(url)
+
+# gets the HTML code as text
+html = response.text
+# endregion
