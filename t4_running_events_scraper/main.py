@@ -44,8 +44,10 @@ matches = re.findall(r"(\d{2}\.\d{2}\.\d{4})\s+(.*)", text)
 # line = Ritma skrējiens 2026 Liepāja
 
 rows = []
-# before filtering or saving anything, inspect what the regex actually found
+# catches events which consists of keywords (ignores whatever does not)
 for date, line in matches:
-    print(date, line)
-
+    text = line.lower()
+    if "skrēj" in text or "skrieš" in text or "maraton" in text or "run" in text:
+        rows.append([date, line])
+print(rows)
 # endregion
