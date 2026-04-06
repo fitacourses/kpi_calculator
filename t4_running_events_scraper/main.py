@@ -28,7 +28,15 @@ html = response.text
 # region 3. Parse HTML
 
 # turns raw HTML text into a structure that Python can search through more easily.
+
 soup = BeautifulSoup(html, "html.parser")
 # html = the downloaded page source
 # "html.parser" = tells BeautifulSoup how to read it
+# endregion
+
+# region 4. Extract page text
+
+# takes all visible text from the webpage and stores it in text
+# /n puts content into seperate lines
+text = soup.get_text("\n")
 # endregion
