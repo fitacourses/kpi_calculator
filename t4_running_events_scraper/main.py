@@ -32,24 +32,26 @@ soup = BeautifulSoup(html, "html.parser")
 
 # region 4. Extract page text
 # takes all visible text from the webpage and stores it in text
-# /n puts content into seperate lines
+# # \n puts content into separate lines
 text = soup.get_text("\n")
 # endregion
 
 # region 5. Find event lines
-# This pattern searches for: dd.mm.yyyy + text after it
+# This pattern searches for: dd.mm.yyyy
+# \d{2} searches for two digits (day/month)
+# \ . searches for a dot
+# \d{4} searches for four digits (year)
+# \s+ matches one or more spaces
+# (.*) captures the rest of the text (event name)
 matches = re.findall(r"(\d{2}\.\d{2}\.\d{4})\s+(.*)", text)
 # example match: 09.05.2026 Ritma skrējiens 2026 Liepāja, gets stored as
 # date = 09.05.2026
 # line = Ritma skrējiens 2026 Liepāja
 
 rows = []
-# catches events which consists of keywords (ignores whatever does not)
+# store all found events
 for date, line in matches:
-    text = line.lower()
-    if "skrēj" in text or "skrieš" in text or "maraton" in text or "run" in text:
-        rows.append([date, line])
-print(rows)
+    rows.append([date, line])
 # endregion
 
 # region 6. Save the filtered rows to CSV
