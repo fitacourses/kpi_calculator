@@ -14,7 +14,7 @@ Each project folder represents one of the four course assignments — grouped in
 
 ---
 
-## 📚 What You Will Learn
+## 📚 What I'm learning
 
 - **Syntax & Logic** — Variables, conditions, loops, functions  
 - **Data Processing** — Working with files, the Pandas library  
@@ -55,9 +55,7 @@ A Python script that reads running session data from a CSV file and visualizes r
 
 > *Web data collection — requests, BeautifulSoup, and HTML parsing.*
 
-A Python script that automatically collects running event data from sportlat.lv and converts it into a structured dataset for analysis. The script retrieves event information such as names, dates, and locations, then saves the extracted data into a CSV file for further processing and visualization.
-
-This project demonstrates automated data collection from web pages and prepares real-world running event data for future analysis.
+A Python script that automatically collects all sports event data from sportlat.lv and converts it into a structured dataset for analysis. The script retrieves event information such as names, dates, and locations, then saves the extracted data into a CSV file for further processing and visualization.
 
 ---
 

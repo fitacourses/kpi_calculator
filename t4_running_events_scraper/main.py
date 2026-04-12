@@ -34,24 +34,58 @@ soup = BeautifulSoup(html, "html.parser")
 # takes all visible text from the webpage and stores it in text
 # # \n puts content into separate lines
 text = soup.get_text("\n")
+
+# split the full page text into separate lines using newline character
+lines = text.split("\n")
+
+# create empty list where we will store cleaned lines
+clean_lines = []
+
+# loop through each line
+for line in lines:
+    
+    # remove spaces at beginning and end of line
+    stripped_line = line.strip()
+    
+    # check if line is not empty after stripping
+    if stripped_line:
+        
+        # add cleaned line to list
+        clean_lines.append(stripped_line)
+
+# replace lines with cleaned version
+lines = clean_lines
 # endregion
 
 # region 5. Find event lines
-# This pattern searches for: dd.mm.yyyy
-# \d{2} searches for two digits (day/month)
-# \ . searches for a dot
-# \d{4} searches for four digits (year)
-# \s+ matches one or more spaces
-# (.*) captures the rest of the text (event name)
-matches = re.findall(r"(\d{2}\.\d{2}\.\d{4})\s+(.*)", text)
-# example match: 09.05.2026 Ritma skrējiens 2026 Liepāja, gets stored as
-# date = 09.05.2026
-# line = Ritma skrējiens 2026 Liepāja
 
+# create empty list to store results
 rows = []
-# store all found events
-for date, line in matches:
-    rows.append([date, line])
+
+# loop through lines using index numbers
+# we use len(lines) - 1 because we look at the next line (i + 1)
+for i in range(len(lines) - 1):
+
+    # get current line
+    current_line = lines[i]
+
+    # check if current line is a date (dd.mm.yyyy format)
+    if re.fullmatch(r"\d{2}\.\d{2}\.\d{4}", current_line):
+
+        # assume next line contains event name
+        event_line = lines[i + 1]
+
+        # sometimes the next line is "INFO"
+        # in that case, actual event name is on the next line after that
+        if event_line == "INFO":
+
+            # check that we don't go out of list range
+            if i + 2 < len(lines):
+                event_line = lines[i + 2]
+
+        # add date and event name to results list
+        rows.append([current_line, event_line])
+
 # endregion
 
 # region 6. Save the filtered rows to CSV

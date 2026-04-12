@@ -11,7 +11,8 @@ This project automatically collects running event data from **sportlat.lv** and 
 This script:
 
 - Downloads event data from sportlat.lv  
-- Extracts event dates and descriptions  
+- Extracts event dates and descriptions
+- Handles "INFO" entries correctly
 - Structures the data into rows  
 - Saves results into a CSV file  
 
