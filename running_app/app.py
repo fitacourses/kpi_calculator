@@ -26,13 +26,31 @@ with tab_overview:
 
     if df is not None:
         st.write("Data loaded successfully.")
+
         df = df.drop(
     columns=[
         "Unnamed: 0",
         "Soļu veids",
         "Intervāls",
         "Kumulatīvais laiks",
+        "Distance"
     ]
+)
+        
+        df = df.rename(
+    columns={
+        "Attālums": "distance_km",
+        "Laiks": "duration",
+        "Vid. temps": "avg_pace",
+        "Vid. SR": "avg_cadence",
+        "Maks. SR": "max_cadence",
+        "Kopējais kāpums": "elevation_gain",
+        "Kopējais kritums": "elevation_loss",
+        "Kalorijas": "calories",
+        "Labākais temps": "best_pace",
+        "Kustības laiks": "moving_time",
+        "Vid. kustības temps": "avg_moving_pace",
+    }
 )
 
         st.dataframe(df.head())
