@@ -21,9 +21,13 @@ if uploaded_files:
     # Read each uploaded CSV separately, then combine them into one dataframe
     dataframes = []
 
-    for file in uploaded_files:
-        current_df = pd.read_csv(file)
-        dataframes.append(current_df)
+for file in uploaded_files:
+    current_df = pd.read_csv(file)
+
+    # Add source file name to track where data comes from
+    current_df["source_file"] = file.name
+
+    dataframes.append(current_df)
 
     df = pd.concat(dataframes, ignore_index=True)
 
