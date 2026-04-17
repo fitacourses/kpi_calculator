@@ -85,8 +85,10 @@ if df is not None:
 
 # region KPIs
 
+# KPI default values in case no data is loaded
 total_distance = None
 avg_pace = None
+weighted_avg_pace = None
 
 if clean_df is not None:
     # calculate total distance from the full cleaned dataset
@@ -107,6 +109,13 @@ if clean_df is not None:
     # calculate the mean pace from numeric pace values
     avg_pace = pace_df["pace_min"].mean()
 
+    # multiply each pace by its distance to create a weighted contribution
+    pace_df["weighted_pace"] = pace_df["pace_min"] * pace_df["distance_km"]
+
+    # calculate weighted average pace only if total distance is greater than 0
+    if pace_df["distance_km"].sum() > 0:
+        weighted_avg_pace = pace_df["weighted_pace"].sum() / pace_df["distance_km"].sum()
+
 # endregion
 
 # region Overview Tab
@@ -125,6 +134,14 @@ with tab_overview:
                 seconds = int(round((avg_pace - minutes) * 60))
                 pace_str = f"{minutes}:{seconds:02d}"
                 st.metric("Average Pace (min/km)", pace_str)
+
+            if weighted_avg_pace is not None:
+                # convert weighted average pace back from decimal minutes to "MM:SS"
+                weighted_minutes = int(weighted_avg_pace)
+                weighted_seconds = int(round((weighted_avg_pace - weighted_minutes) * 60))
+                weighted_pace_str = f"{weighted_minutes}:{weighted_seconds:02d}"
+
+                st.metric("Weighted Average Pace (min/km)", weighted_pace_str)
 
         n_rows = st.slider("Rows to display", 5, 100, 20)
         st.dataframe(clean_df.head(n_rows))
