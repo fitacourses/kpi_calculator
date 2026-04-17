@@ -30,17 +30,17 @@ tab_overview, tab_trends, tab_records, tab_insights = st.tabs(
 df = None
 
 if uploaded_files:
-    # Read each uploaded CSV separately, then combine them into one dataframe
     dataframes = []
 
+    # read each uploaded CSV separately
     for file in uploaded_files:
         current_df = pd.read_csv(file)
 
-        # Add source file name to track where data comes from
+        # add source file name to track where data comes from
         current_df["source_file"] = file.name
-
         dataframes.append(current_df)
 
+    # concatenate all loaded files into one unified dataset
     df = pd.concat(dataframes, ignore_index=True)
 
 # endregion
@@ -50,10 +50,10 @@ if uploaded_files:
 clean_df = None
 
 if df is not None:
-    # Create a clean copy of raw data for processing
+    # create a clean copy of raw data for processing
     clean_df = df.copy()
 
-    # Remove columns that are technical, duplicated, or not useful for the current analysis
+    # remove columns that are duplicated/not useful for the current analysis
     clean_df = clean_df.drop(
         columns=[
             "Unnamed: 0",
@@ -64,8 +64,7 @@ if df is not None:
         ]
     )
 
-    # Rename key columns to consistent English snake_case names
-    # so the rest of the code is easier to read and maintain
+    # rename key columns to consistent English snake_case names
     clean_df = clean_df.rename(
         columns={
             "Attālums": "distance_km",
@@ -87,9 +86,26 @@ if df is not None:
 # region KPIs
 
 total_distance = None
+avg_pace = None
 
 if clean_df is not None:
+    # calculate total distance from the full cleaned dataset
     total_distance = clean_df["distance_km"].sum()
+
+    # create a separate dataframe for pace calculations so clean_df stays unchanged
+    pace_df = clean_df.dropna(subset=["avg_pace"]).copy()
+
+    # keep only rows where pace has a valid "MM:SS" format
+    pace_df = pace_df[pace_df["avg_pace"].str.contains(":")]
+
+    # split pace text into minutes and seconds
+    parts = pace_df["avg_pace"].str.split(":")
+
+    # convert pace from "MM:SS" into total minutes as a number
+    pace_df["pace_min"] = parts.str[0].astype(int) + (parts.str[1].astype(int) / 60)
+
+    # calculate the mean pace from numeric pace values
+    avg_pace = pace_df["pace_min"].mean()
 
 # endregion
 
@@ -104,9 +120,19 @@ with tab_overview:
         if total_distance is not None:
             st.metric("Total Distance (km)", f"{total_distance:.2f}")
 
+            if avg_pace is not None:
+                minutes = int(avg_pace)
+                seconds = int(round((avg_pace - minutes) * 60))
+                pace_str = f"{minutes}:{seconds:02d}"
+                st.metric("Average Pace (min/km)", pace_str)
+
         n_rows = st.slider("Rows to display", 5, 100, 20)
         st.dataframe(clean_df.head(n_rows))
         st.write(clean_df.columns)
+
+        # st.write(clean_df["avg_pace"].isna().sum())
+        # st.write(clean_df[clean_df["avg_pace"].isna()])
+        # st.write(clean_df["avg_pace"].dtype)
 
 # endregion
 
