@@ -113,8 +113,24 @@ def get_pace_df(clean_df):
     pace_df["pace_min"] = (
         parts.str[0].astype(int) + (parts.str[1].astype(int) / 60)
     )
+    # create weighted component for later aggregation
+    pace_df["pace_x_distance"] = pace_df["pace_min"] * pace_df["distance_km"]
 
     return pace_df
+
+def get_daily_pace_df(pace_df):
+    # group by day
+    daily = pace_df.groupby("activity_date").agg(
+        total_distance_km=("distance_km", "sum"),
+        total_pace_x_distance=("pace_x_distance", "sum")
+    ).reset_index()
+
+    # compute weighted daily pace
+    daily["daily_pace_min"] = (
+        daily["total_pace_x_distance"] / daily["total_distance_km"]
+    )
+
+    return daily
 
 # endregion
 
