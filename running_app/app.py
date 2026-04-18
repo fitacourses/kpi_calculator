@@ -147,13 +147,13 @@ with tab_overview:
         if total_distance is not None:
             st.metric("Total Distance (km)", f"{total_distance:.2f}")
 
-            if avg_pace is not None:
+        if avg_pace is not None:
                 minutes = int(avg_pace)
                 seconds = int(round((avg_pace - minutes) * 60))
                 pace_str = f"{minutes}:{seconds:02d}"
                 st.metric("Average Pace (min/km)", pace_str)
 
-            if weighted_avg_pace is not None:
+        if weighted_avg_pace is not None:
                 # convert weighted average pace back from decimal minutes to "MM:SS"
                 weighted_minutes = int(weighted_avg_pace)
                 weighted_seconds = int(round((weighted_avg_pace - weighted_minutes) * 60))
@@ -163,8 +163,8 @@ with tab_overview:
 
         n_rows = st.slider("Rows to display", 5, 100, 20)
         st.dataframe(clean_df.head(n_rows))
-        st.write(clean_df.columns)
 
+        # st.write(clean_df.columns)
         # st.write(clean_df["avg_pace"].isna().sum())
         # st.write(clean_df[clean_df["avg_pace"].isna()])
         # st.write(clean_df["avg_pace"].dtype)
@@ -180,12 +180,26 @@ with tab_trends:
         # reuse the same preprocessing function
         pace_df = get_pace_df(clean_df)
 
-        st.subheader("Pace Distribution")
+        if not pace_df.empty:
+            st.subheader("Pace Distribution")
 
-        # simple histogram using value counts
-        st.bar_chart(
-            pace_df["pace_min"].value_counts().sort_index()
-        )
+            # group pace values into bins (e.g. 10 intervals across the data range)
+            bins = pd.cut(pace_df["pace_min"], bins=10)
+
+            # count how many values fall into each bin and sort them in order
+            hist_data = bins.value_counts().sort_index()
+
+            # convert Series → DataFrame so it can be used in a chart
+            hist_df = hist_data.reset_index()
+
+            # rename columns for clarity
+            hist_df.columns = ["pace_range", "count"]
+
+            # convert interval objects (e.g. (5.0, 5.5]) to strings for chart compatibility
+            hist_df["pace_range"] = hist_df["pace_range"].astype(str)
+
+            # set pace_range as index so it becomes the X-axis in the chart
+            st.bar_chart(hist_df.set_index("pace_range"))
 
 # endregion
 
