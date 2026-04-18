@@ -250,10 +250,42 @@ with tab_trends:
 
 # endregion
 
+# region Records Calculations
+
+# default values for records
+longest_run = None
+best_pace = None
+
+if clean_df is not None:
+    # get the longest distance from the cleaned dataset
+    longest_run = clean_df["distance_km"].max()
+
+    # reuse pace preprocessing for pace-based records
+    pace_df = get_pace_df(clean_df)
+
+    if not pace_df.empty:
+        # get the fastest pace (lowest pace_min value)
+        best_pace = pace_df["pace_min"].min()
+
+# endregion
+
 # region Records Tab
 
 with tab_records:
     st.subheader("Records")
+
+    if clean_df is not None:
+        if longest_run is not None:
+            # show the longest recorded run
+            st.metric("Longest Run (km)", f"{longest_run:.2f}")
+
+        if best_pace is not None:
+            # convert best pace from decimal minutes to MM:SS
+            best_minutes = int(best_pace)
+            best_seconds = int(round((best_pace - best_minutes) * 60))
+            best_pace_str = f"{best_minutes}:{best_seconds:02d}"
+
+            st.metric("Best Pace (min/km)", best_pace_str)
 
 # endregion
 
