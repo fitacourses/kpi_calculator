@@ -95,6 +95,12 @@ if df is not None:
             .str.replace(",", ".", regex=False)
             .astype(float)
         )
+
+    if "elevation_gain" in clean_df.columns:
+        clean_df["elevation_gain"] = pd.to_numeric(
+            clean_df["elevation_gain"], errors="coerce"
+        )
+
 # endregion
 
 # region Helpers
@@ -332,16 +338,10 @@ with tab_trends:
                 # plot total distance per day
                 st.line_chart(daily_distance.set_index("activity_date")["distance_km"])
 
-                st.subheader("Weekly Distance")
+            if "elevation_gain" in clean_df.columns:
+                st.subheader("Elevation Gain vs Distance")
 
-                # resample daily distance into weekly totals for a broader training view
-                weekly_distance = (
-                    clean_df.set_index("activity_date")
-                    .resample("W")["distance_km"]
-                    .sum()
-                )
-                # plot weekly total distance to show training volume trend
-                st.line_chart(weekly_distance)
+                st.scatter_chart(clean_df, x="distance_km", y="elevation_gain")
 
                 st.subheader("Calories Over Time")
 
