@@ -107,32 +107,21 @@ if df is not None:
 
 
 def get_pace_df(clean_df):
-    # keep only rows with valid avg_pace values and convert pace to numeric minutes
-
-    # create a copy so the original cleaned dataframe stays unchanged
+    # filter valid pace values and convert "MM:SS" -> decimal minutes
     pace_df = clean_df.dropna(subset=["avg_pace"]).copy()
-
-    # keep only pace values that look like "MM:SS"
     pace_df = pace_df[pace_df["avg_pace"].str.contains(":")]
 
-    # split pace string into minutes and seconds parts
     parts = pace_df["avg_pace"].str.split(":")
-
-    # convert "MM:SS" pace into decimal minutes
-    # example: 5:30 -> 5.5
     pace_df["pace_min"] = parts.str[0].astype(int) + (parts.str[1].astype(int) / 60)
 
-    # create weighted pace component so daily pace can be calculated
-    # as sum(pace * distance) / sum(distance)
+    # prepare weighted pace component for later aggregation
     pace_df["pace_x_distance"] = pace_df["pace_min"] * pace_df["distance_km"]
 
     return pace_df
 
 
 def get_daily_pace_df(pace_df):
-    # Aggregate session-level pace data into one weighted pace value per day
-
-    # group all runs by date so each day becomes one row
+    # aggregate runs per day and compute weighted daily pace
     daily = (
         pace_df.groupby("activity_date")
         .agg(
@@ -142,7 +131,6 @@ def get_daily_pace_df(pace_df):
         .reset_index()
     )
 
-    # calculate weighted daily pace
     daily["daily_pace_min"] = (
         daily["total_pace_x_distance"] / daily["total_distance_km"]
     )
@@ -151,10 +139,9 @@ def get_daily_pace_df(pace_df):
 
 
 def get_pace_df_with_types(clean_df):
-    # start from the existing pace helper
+    # classify runs by distance (short / medium / long)
     pace_df = get_pace_df(clean_df)
 
-    # classify each run by distance
     pace_df["run_type"] = pd.cut(
         pace_df["distance_km"],
         bins=[0, 7, 13, float("inf")],
@@ -166,6 +153,7 @@ def get_pace_df_with_types(clean_df):
 
 
 def format_minutes_to_hhmmss(time_min):
+    # convert decimal minutes -> HH:MM:SS (for records display)
     total_seconds = int(round(time_min * 60))
 
     hours = total_seconds // 3600
@@ -182,29 +170,24 @@ def format_minutes_to_hhmmss(time_min):
 
 # region KPIs
 
-# KPI default values if no data is loaded
+# KPI default values
 total_distance = None
 avg_pace = None
-weighted_avg_pace = None
+total_calories = None
 
 if clean_df is not None:
-    # calculate total distance from full dataset
     total_distance = clean_df["distance_km"].sum()
 
-    # reuse preprocessing logic
     pace_df = get_pace_df(clean_df)
 
-    # simple average pace
-    avg_pace = pace_df["pace_min"].mean()
+    if not pace_df.empty and pace_df["distance_km"].sum() > 0:
+        # use distance-weighted pace as the main average pace metric
+        avg_pace = (pace_df["pace_min"] * pace_df["distance_km"]).sum() / pace_df[
+            "distance_km"
+        ].sum()
 
-    # create weighted pace contribution
-    pace_df["weighted_pace"] = pace_df["pace_min"] * pace_df["distance_km"]
-
-    # calculate weighted average pace safely
-    if pace_df["distance_km"].sum() > 0:
-        weighted_avg_pace = (
-            pace_df["weighted_pace"].sum() / pace_df["distance_km"].sum()
-        )
+    if "calories" in clean_df.columns:
+        total_calories = clean_df["calories"].sum()
 
 # endregion
 
@@ -225,35 +208,26 @@ with tab_overview:
             pace_str = f"{minutes}:{seconds:02d}"
             st.metric("Average Pace (min/km)", pace_str)
 
-        if weighted_avg_pace is not None:
-            # convert weighted average pace back from decimal minutes to "MM:SS"
-            weighted_minutes = int(weighted_avg_pace)
-            weighted_seconds = int(round((weighted_avg_pace - weighted_minutes) * 60))
-            weighted_pace_str = f"{weighted_minutes}:{weighted_seconds:02d}"
+        if total_calories is not None:
+            st.metric("Total Calories", int(total_calories))
 
-            st.metric("Weighted Average Pace (min/km)", weighted_pace_str)
+        # create a copy for display so original data stays unchanged
+        display_df = clean_df.copy()
 
-            # create a copy for display so original data stays unchanged
-            display_df = clean_df.copy()
+        # format datetime column to show only date (no time)
+        display_df["activity_date"] = display_df["activity_date"].dt.strftime(
+            "%Y-%m-%d"
+        )
 
-            # format datetime column to show only date (no time)
-            display_df["activity_date"] = display_df["activity_date"].dt.strftime(
-                "%Y-%m-%d"
-            )
+        columns_to_show = [
+            "activity_date",
+            "distance_km",
+            "avg_pace",
+            "calories",
+        ]
+        n_rows = st.slider("Rows to display", 5, 100, 20)
 
-            if "calories" in clean_df.columns:
-                total_calories = clean_df["calories"].sum()
-                st.metric("Total Calories", int(total_calories))
-
-            columns_to_show = [
-                "activity_date",
-                "distance_km",
-                "avg_pace",
-                "calories",
-            ]
-            n_rows = st.slider("Rows to display", 5, 100, 20)
-
-            st.dataframe(display_df[columns_to_show].head(n_rows))
+        st.dataframe(display_df[columns_to_show].head(n_rows))
 # endregion
 
 # region Trends Tab
@@ -265,20 +239,19 @@ with tab_trends:
         pace_df = get_pace_df_with_types(clean_df)
 
         if not pace_df.empty:
-
-            # remove very short or very slow runs from the summary
-            # so unusual recovery runs or noisy entries do not distort the averages
+            # filter out short/noisy runs for cleaner summary
             pace_df_filtered = pace_df[
                 (pace_df["distance_km"] > 2) & (pace_df["pace_min"] < 9)
             ]
 
-            # summarise each run category to compare volume and pace by run type
+            # compare run types by volume and pace
             run_summary = pace_df_filtered.groupby("run_type", as_index=False).agg(
                 runs=("run_type", "count"),
                 avg_pace_min=("pace_min", "mean"),
                 total_distance_km=("distance_km", "sum"),
             )
 
+            # format pace for display
             minutes = run_summary["avg_pace_min"].astype(int)
             seconds = ((run_summary["avg_pace_min"] - minutes) * 60).round().astype(int)
 
@@ -291,60 +264,44 @@ with tab_trends:
                 run_summary[["run_type", "runs", "avg_pace", "total_distance_km"]]
             )
 
-            # aggregate session-level runs into one weighted pace value per day
+            # build daily pace trend
             daily_pace_df = get_daily_pace_df(pace_df)
-
-            # sort by date before creating any rolling trend calculation
             daily_pace_df = daily_pace_df.sort_values("activity_date")
 
-            # smooth the daily pace line so the chart shows trend more clearly
-            # instead of only day-to-day noise
+            # smooth pace to highlight trend over noise
             daily_pace_df["pace_smooth"] = (
                 daily_pace_df["daily_pace_min"].rolling(window=5, min_periods=1).mean()
             )
 
-            # convert numeric pace into MM:SS format for easier human reading
-            minutes = daily_pace_df["daily_pace_min"].astype(int)
-            seconds = (
-                ((daily_pace_df["daily_pace_min"] - minutes) * 60).round().astype(int)
-            )
-            daily_pace_df["pace_str"] = (
-                minutes.astype(str) + ":" + seconds.astype(str).str.zfill(2)
-            )
-
             if not daily_pace_df.empty:
                 st.subheader("Pace Over Time")
-
-                # plot the smoothed pace line to make the trend easier to interpret
                 st.line_chart(daily_pace_df.set_index("activity_date")["pace_smooth"])
 
             st.subheader("Pace vs Distance")
-
-            # use session-level data for each point
             st.scatter_chart(pace_df, x="distance_km", y="pace_min")
 
-            # show time-based charts only if activity_date exists
             if "activity_date" in clean_df.columns:
                 st.subheader("Distance Over Time")
 
-                # combine all runs from the same day into one total daily distance
+                # total distance per day
                 daily_distance = clean_df.groupby("activity_date", as_index=False)[
                     "distance_km"
                 ].sum()
 
-                # sort by date so the timeline is drawn in the correct order
                 daily_distance = daily_distance.sort_values("activity_date")
 
-                # plot total distance per day
                 st.line_chart(daily_distance.set_index("activity_date")["distance_km"])
 
             if "elevation_gain" in clean_df.columns:
                 st.subheader("Elevation Gain vs Distance")
 
+                # compare terrain vs distance
                 st.scatter_chart(clean_df, x="distance_km", y="elevation_gain")
 
+            if "calories" in clean_df.columns:
                 st.subheader("Calories Over Time")
 
+                # total calories per day
                 daily_calories = clean_df.groupby("activity_date", as_index=False)[
                     "calories"
                 ].sum()
@@ -357,29 +314,22 @@ with tab_trends:
 
 # region Records Calculations
 
-# default values for records
+## estimate best 5K / 10K / 21K times from fastest eligible runs
 longest_run = None
 best_5k_time = None
 best_10k_time = None
 best_21k_time = None
 
 if clean_df is not None:
-    # get the longest distance from the cleaned dataset
     longest_run = clean_df["distance_km"].max()
 
-    # get the full row of the fastest run
-    fastest_run = pace_df.loc[pace_df["pace_min"].idxmin()]
-
-    # reuse pace preprocessing for pace-based records
     pace_df = get_pace_df(clean_df)
 
     if not pace_df.empty:
-        # find runs long enough for each target distance
         runs_5k = pace_df[pace_df["distance_km"] >= 5]
         runs_10k = pace_df[pace_df["distance_km"] >= 10]
         runs_21k = pace_df[pace_df["distance_km"] >= 21]
 
-        # estimate best target times from the fastest eligible run pace
         if not runs_5k.empty:
             best_5k_time = runs_5k["pace_min"].min() * 5
 
