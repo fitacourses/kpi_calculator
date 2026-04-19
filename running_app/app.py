@@ -87,6 +87,14 @@ if df is not None:
     # normalize datetime so runs from the same day can be grouped together
     clean_df["activity_date"] = clean_df["activity_date"].dt.normalize()
 
+    # convert calories from string with comma decimal separator to numeric float
+    if "calories" in clean_df.columns:
+        clean_df["calories"] = (
+            clean_df["calories"]
+            .astype(str)
+            .str.replace(",", ".", regex=False)
+            .astype(float)
+        )
 # endregion
 
 # region Helpers
@@ -189,10 +197,6 @@ with tab_overview:
     if clean_df is not None:
         st.write("Data loaded successfully.")
 
-        if "calories" in clean_df.columns:
-            total_calories = clean_df["calories"].sum()
-            st.metric("Total Calories", int(total_calories))
-
         if total_distance is not None:
             st.metric("Total Distance (km)", f"{total_distance:.2f}")
 
@@ -210,8 +214,6 @@ with tab_overview:
 
             st.metric("Weighted Average Pace (min/km)", weighted_pace_str)
 
-            n_rows = st.slider("Rows to display", 5, 300, 20)
-
             # create a copy for display so original data stays unchanged
             display_df = clean_df.copy()
 
@@ -220,12 +222,18 @@ with tab_overview:
                 "%Y-%m-%d"
             )
 
+            if "calories" in clean_df.columns:
+                total_calories = clean_df["calories"].sum()
+                st.metric("Total Calories", int(total_calories))
+
             columns_to_show = [
                 "activity_date",
                 "distance_km",
                 "avg_pace",
                 "calories",
             ]
+            n_rows = st.slider("Rows to display", 5, 100, 20)
+
             st.dataframe(display_df[columns_to_show].head(n_rows))
 # endregion
 
