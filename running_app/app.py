@@ -210,6 +210,12 @@ with tab_trends:
     if clean_df is not None:
         # show pace-based charts only if valid pace data exists
         pace_df = get_pace_df(clean_df)
+        pace_df["run_type"] = pd.cut(
+            pace_df["distance_km"],
+            bins=[0, 7, 13, float("inf")],
+            labels=["short", "medium", "long"],
+            include_lowest=True,
+        )
 
         if not pace_df.empty:
             st.subheader("Pace Distribution")
@@ -232,6 +238,19 @@ with tab_trends:
             # set pace_range as index so it becomes the X-axis in the chart
             st.bar_chart(hist_df.set_index("pace_range"))
 
+            pace_df_filtered = pace_df[
+                (pace_df["distance_km"] > 2) & (pace_df["pace_min"] < 9)
+            ]
+
+            run_summary = pace_df_filtered.groupby("run_type", as_index=False).agg(
+                runs=("run_type", "count"),
+                avg_pace_min=("pace_min", "mean"),
+                total_distance_km=("distance_km", "sum"),
+            )
+
+            st.subheader("Run Type Summary")
+            st.dataframe(run_summary)
+
             # pace over time
             daily_pace_df = get_daily_pace_df(pace_df)
             daily_pace_df = daily_pace_df.sort_values("activity_date")
@@ -253,7 +272,6 @@ with tab_trends:
                 st.line_chart(daily_pace_df.set_index("activity_date")["pace_smooth"])
 
             st.subheader("Pace vs Distance")
-            pace_df = get_pace_df(clean_df)
 
             if not pace_df.empty:
                 st.scatter_chart(pace_df, x="distance_km", y="pace_min")
@@ -261,28 +279,27 @@ with tab_trends:
             if "activity_date" in clean_df.columns:
                 st.subheader("Distance Over Time")
 
-        # create a daily distance summary
-        daily_distance = clean_df.groupby("activity_date", as_index=False)[
-            "distance_km"
-        ].sum()
+            # create a daily distance summary
+            daily_distance = clean_df.groupby("activity_date", as_index=False)[
+                "distance_km"
+            ].sum()
 
-        # sort by date for a correct timeline
-        daily_distance = daily_distance.sort_values("activity_date")
+            # sort by date for a correct timeline
+            daily_distance = daily_distance.sort_values("activity_date")
 
-        # plot daily distance over time
-        st.line_chart(daily_distance.set_index("activity_date")["distance_km"])
+            # plot daily distance over time
+            st.line_chart(daily_distance.set_index("activity_date")["distance_km"])
 
-        st.subheader("Weekly Distance")
+            st.subheader("Weekly Distance")
 
-        # aggregate distance by week
-        weekly_distance = (
-            clean_df.set_index("activity_date").resample("W")["distance_km"].sum()
-        )
+            # aggregate distance by week
+            weekly_distance = (
+                clean_df.set_index("activity_date").resample("W")["distance_km"].sum()
+            )
 
-        # plot weekly distance trend
-        st.line_chart(weekly_distance)
-        st.dataframe(daily_pace_df[["activity_date", "daily_pace_min", "pace_smooth"]])
-
+            # plot weekly distance trend
+            st.line_chart(weekly_distance)
+            # st.dataframe(daily_pace_df[["activity_date", "daily_pace_min", "pace_smooth"]])
 # endregion
 
 # region Records Calculations
