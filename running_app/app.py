@@ -246,28 +246,6 @@ with tab_trends:
         pace_df = get_pace_df_with_types(clean_df)
 
         if not pace_df.empty:
-            st.subheader("Pace Distribution")
-
-            # group pace values into bins for a proper histogram
-            bins = pd.cut(
-                pace_df["pace_min"],
-                bins=[4, 5, 6, 7, 8, 9],
-            )
-
-            # count how many values fall into each bin and sort them in order
-            hist_data = bins.value_counts().sort_index()
-
-            # convert Series to DataFrame so it can be used in a chart
-            hist_df = hist_data.reset_index()
-
-            # rename columns for clarity
-            hist_df.columns = ["pace_range", "count"]
-
-            # convert interval objects to strings for chart compatibility
-            hist_df["pace_range"] = hist_df["pace_range"].astype(str)
-
-            # set pace_range as index so it becomes the X-axis in the chart
-            st.bar_chart(hist_df.set_index("pace_range"))
 
             # remove very short or very slow runs from the summary
             # so unusual recovery runs or noisy entries do not distort the averages
@@ -359,9 +337,6 @@ with tab_trends:
                 daily_calories = daily_calories.sort_values("activity_date")
 
                 st.line_chart(daily_calories.set_index("activity_date")["calories"])
-
-                # plot weekly total distance to show training volume trend
-                st.line_chart(weekly_distance)
 
 # endregion
 
