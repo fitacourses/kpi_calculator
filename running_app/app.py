@@ -370,7 +370,7 @@ with tab_insights:
         pace_df = get_pace_df_with_types(clean_df)
 
         if not pace_df.empty:
-            # --- METRICS ---
+            # summary metrics
             avg_distance = pace_df["distance_km"].mean()
 
             runs_per_week = (
@@ -388,7 +388,7 @@ with tab_insights:
             with col2:
                 st.metric("Average runs per week", f"{runs_per_week:.1f}")
 
-            # --- INSIGHTS ---
+            # pace trend insight
             daily_pace_df = get_daily_pace_df(pace_df)
 
             if not daily_pace_df.empty:
@@ -400,6 +400,7 @@ with tab_insights:
                 else:
                     st.warning("Pace has slowed down recently.")
 
+            # pace vs distance relationship
             corr = pace_df["distance_km"].corr(pace_df["pace_min"])
 
             if corr > 0.2:
