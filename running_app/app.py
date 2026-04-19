@@ -241,7 +241,10 @@ with tab_trends:
             st.subheader("Pace Distribution")
 
             # group pace values into bins for a proper histogram
-            bins = pd.cut(pace_df["pace_min"], bins=10)
+            bins = pd.cut(
+                pace_df["pace_min"],
+                bins=[4, 5, 6, 7, 8, 9],
+            )
 
             # count how many values fall into each bin and sort them in order
             hist_data = bins.value_counts().sort_index()
@@ -350,10 +353,14 @@ with tab_trends:
 # default values for records
 longest_run = None
 best_pace = None
+fastest_run = None
 
 if clean_df is not None:
     # get the longest distance from the cleaned dataset
     longest_run = clean_df["distance_km"].max()
+
+    # get the full row of the fastest run
+    fastest_run = pace_df.loc[pace_df["pace_min"].idxmin()]
 
     # reuse pace preprocessing for pace-based records
     pace_df = get_pace_df(clean_df)
@@ -376,15 +383,17 @@ with tab_records:
             # show the longest recorded run
             st.metric("Longest Run (km)", f"{longest_run:.2f}")
 
-        if best_pace is not None:
+        if best_pace is not None and fastest_run is not None:
             # convert best pace from decimal minutes to MM:SS
             best_minutes = int(best_pace)
             best_seconds = int(round((best_pace - best_minutes) * 60))
             best_pace_str = f"{best_minutes}:{best_seconds:02d}"
 
             st.metric("Best Pace (min/km)", best_pace_str)
-            st.write("Fastest run distance:", fastest_run["distance_km"])
-            st.write("Date:", fastest_run["activity_date"])
+            st.write("Fastest run distance (km):", round(fastest_run["distance_km"], 2))
+
+            run_date = fastest_run["activity_date"].strftime("%Y-%m-%d")
+            st.write("Date:", run_date)
 
 # endregion
 
