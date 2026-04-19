@@ -136,6 +136,21 @@ def get_daily_pace_df(pace_df):
     return daily
 
 
+def get_pace_df_with_types(clean_df):
+    # start from the existing pace helper
+    pace_df = get_pace_df(clean_df)
+
+    # classify each run by distance
+    pace_df["run_type"] = pd.cut(
+        pace_df["distance_km"],
+        bins=[0, 7, 13, float("inf")],
+        labels=["short", "medium", "long"],
+        include_lowest=True,
+    )
+
+    return pace_df
+
+
 # endregion
 
 # region KPIs
@@ -191,7 +206,7 @@ with tab_overview:
 
             st.metric("Weighted Average Pace (min/km)", weighted_pace_str)
 
-            n_rows = st.slider("Rows to display", 5, 100, 20)
+            n_rows = st.slider("Rows to display", 5, 300, 20)
 
             # create a copy for display so original data stays unchanged
             display_df = clean_df.copy()
@@ -211,16 +226,7 @@ with tab_trends:
     st.subheader("Trends")
 
     if clean_df is not None:
-        # reuse the pace helper once and use the same analysis dataset for all pace-based charts in this tab
-        pace_df = get_pace_df(clean_df)
-
-        # classify each run by distance so runs can be compared by type
-        pace_df["run_type"] = pd.cut(
-            pace_df["distance_km"],
-            bins=[0, 7, 13, float("inf")],
-            labels=["short", "medium", "long"],
-            include_lowest=True,
-        )
+        pace_df = get_pace_df_with_types(clean_df)
 
         if not pace_df.empty:
             st.subheader("Pace Distribution")
@@ -337,6 +343,8 @@ if clean_df is not None:
         # get the fastest pace (lowest pace_min value)
         best_pace = pace_df["pace_min"].min()
 
+        # get the full row of the fastest run
+        fastest_run = pace_df.loc[pace_df["pace_min"].idxmin()]
 # endregion
 
 # region Records Tab
@@ -356,6 +364,8 @@ with tab_records:
             best_pace_str = f"{best_minutes}:{best_seconds:02d}"
 
             st.metric("Best Pace (min/km)", best_pace_str)
+            st.write("Fastest run distance:", fastest_run["distance_km"])
+            st.write("Date:", fastest_run["activity_date"])
 
 # endregion
 
@@ -364,4 +374,21 @@ with tab_records:
 with tab_insights:
     st.subheader("Insights")
 
+    if clean_df is not None:
+        pace_df = get_pace_df_with_types(clean_df)
+
+        if not pace_df.empty:
+            most_common = pace_df["run_type"].value_counts().idxmax()
+            st.write("Most common run type:", most_common)
+
+            daily_pace_df = get_daily_pace_df(pace_df)
+
+            if not daily_pace_df.empty:
+                recent = daily_pace_df.tail(7)["daily_pace_min"].mean()
+                older = daily_pace_df.head(7)["daily_pace_min"].mean()
+
+                if recent < older:
+                    st.write("You are getting faster recently.")
+                else:
+                    st.write("Pace has slowed down recently.")
 # endregion
