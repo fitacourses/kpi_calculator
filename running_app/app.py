@@ -245,6 +245,36 @@ with tab_overview:
         n_rows = st.slider("Rows to display", 5, 100, 20)
 
         st.dataframe(display_df[columns_to_show].head(n_rows), hide_index=True)
+
+        pace_df = get_pace_df_with_types(clean_df)
+        if not pace_df.empty:
+            pace_df_filtered = pace_df[
+                (pace_df["distance_km"] > 2)
+                & (pace_df["pace_min"] < 9)
+                & (pace_df["pace_min"] >= 3.5)
+            ]
+
+            if not pace_df_filtered.empty:
+                run_summary = pace_df_filtered.groupby("run_type", as_index=False).agg(
+                    runs=("run_type", "count"),
+                    avg_pace_min=("pace_min", "mean"),
+                    total_distance_km=("distance_km", "sum"),
+                )
+
+                minutes = run_summary["avg_pace_min"].astype(int)
+                seconds = (
+                    ((run_summary["avg_pace_min"] - minutes) * 60).round().astype(int)
+                )
+
+                run_summary["avg_pace"] = (
+                    minutes.astype(str) + ":" + seconds.astype(str).str.zfill(2)
+                )
+
+                st.subheader("Run Type Summary")
+                st.dataframe(
+                    run_summary[["run_type", "runs", "avg_pace", "total_distance_km"]],
+                    hide_index=True,
+                )
 # endregion
 
 # region Trends Tab
@@ -256,33 +286,12 @@ with tab_trends:
         pace_df = get_pace_df_with_types(clean_df)
 
         if not pace_df.empty:
-            # filter out short/noisy runs for cleaner summary
-            pace_df_filtered = pace_df[
-                (pace_df["distance_km"] > 2) & (pace_df["pace_min"] < 9)
-            ]
-
-            # compare run types by volume and pace
-            run_summary = pace_df_filtered.groupby("run_type", as_index=False).agg(
-                runs=("run_type", "count"),
-                avg_pace_min=("pace_min", "mean"),
-                total_distance_km=("distance_km", "sum"),
-            )
-
-            # format pace for display
-            minutes = run_summary["avg_pace_min"].astype(int)
-            seconds = ((run_summary["avg_pace_min"] - minutes) * 60).round().astype(int)
-
-            run_summary["avg_pace"] = (
-                minutes.astype(str) + ":" + seconds.astype(str).str.zfill(2)
-            )
-
-            st.subheader("Run Type Summary")
-            st.dataframe(
-                run_summary[["run_type", "runs", "avg_pace", "total_distance_km"]]
-            )
+            pace_df_trends = pace_df[pace_df["pace_min"] >= 3.5].copy()
+            if pace_df_trends.empty:
+                pace_df_trends = pace_df.copy()
 
             # build daily pace trend
-            daily_pace_df = get_daily_pace_df(pace_df)
+            daily_pace_df = get_daily_pace_df(pace_df_trends)
             daily_pace_df = daily_pace_df.sort_values("activity_date")
 
             # smooth pace to highlight trend over noise
@@ -292,15 +301,26 @@ with tab_trends:
 
             if not daily_pace_df.empty:
                 st.subheader("Pace Over Time")
+                st.caption(
+                    "Lower is better (faster pace). Watch the line trend down over time for improvement; spikes up often mean fatigue, heat, hills, or bad conditions."
+                )
                 pace_over_time_chart = (
                     alt.Chart(daily_pace_df)
                     .mark_line()
                     .encode(
                         x=alt.X("activity_date:T", title="Date"),
-                        y=alt.Y("pace_smooth:Q", title="Pace (min/km)"),
+                        y=alt.Y(
+                            "pace_smooth:Q",
+                            title="Pace (min/km)",
+                            scale=alt.Scale(
+                                domain=[4.0, 8.0], reverse=True, nice=False, clamp=True
+                            ),
+                        ),
                         tooltip=[
                             alt.Tooltip("activity_date:T", title="Date"),
-                            alt.Tooltip("pace_smooth:Q", title="Pace (min/km)", format=".2f"),
+                            alt.Tooltip(
+                                "pace_smooth:Q", title="Pace (min/km)", format=".2f"
+                            ),
                         ],
                     )
                     .properties(height=260)
@@ -308,14 +328,25 @@ with tab_trends:
                 st.altair_chart(pace_over_time_chart, use_container_width=True)
 
             st.subheader("Pace vs Distance")
+            st.caption(
+                "Lower is better. A clear upward slope means you slow down on longer runs; a flatter cloud suggests better endurance or steadier pacing."
+            )
             pace_vs_distance_chart = (
-                alt.Chart(pace_df)
+                alt.Chart(pace_df_trends)
                 .mark_circle(size=55, opacity=0.6)
                 .encode(
                     x=alt.X("distance_km:Q", title="Distance (km)"),
-                    y=alt.Y("pace_min:Q", title="Pace (min/km)"),
+                    y=alt.Y(
+                        "pace_min:Q",
+                        title="Pace (min/km)",
+                        scale=alt.Scale(
+                            domain=[4.0, 8.0], reverse=True, nice=False, clamp=True
+                        ),
+                    ),
                     tooltip=[
-                        alt.Tooltip("distance_km:Q", title="Distance (km)", format=".2f"),
+                        alt.Tooltip(
+                            "distance_km:Q", title="Distance (km)", format=".2f"
+                        ),
                         alt.Tooltip("pace_min:Q", title="Pace (min/km)", format=".2f"),
                     ],
                 )
@@ -355,13 +386,17 @@ with tab_trends:
                         x=alt.X(
                             "bpm:Q",
                             title="Heart rate (bpm)",
-                            scale=alt.Scale(domain=[110, bpm_upper], nice=False, clamp=True),
+                            scale=alt.Scale(
+                                domain=[110, bpm_upper], nice=False, clamp=True
+                            ),
                             axis=alt.Axis(tickMinStep=5, grid=True),
                         ),
                         y=alt.Y(
                             "pace_min:Q",
                             title="Pace (min/km)",
-                            scale=alt.Scale(domain=[3.0, 8.5], reverse=True, nice=False),
+                            scale=alt.Scale(
+                                domain=[3.0, 8.5], reverse=True, nice=False
+                            ),
                             axis=alt.Axis(tickMinStep=0.25, grid=True),
                         ),
                         tooltip=[
@@ -378,6 +413,9 @@ with tab_trends:
 
             if "activity_date" in clean_df.columns:
                 st.subheader("Distance Over Time")
+                st.caption(
+                    "Higher is more volume. Look for consistent weekly patterns and gradual increases; sudden jumps can signal higher injury risk."
+                )
 
                 # total distance per day
                 daily_distance = clean_df.groupby("activity_date", as_index=False)[
@@ -394,7 +432,9 @@ with tab_trends:
                         y=alt.Y("distance_km:Q", title="Distance (km)"),
                         tooltip=[
                             alt.Tooltip("activity_date:T", title="Date"),
-                            alt.Tooltip("distance_km:Q", title="Distance (km)", format=".2f"),
+                            alt.Tooltip(
+                                "distance_km:Q", title="Distance (km)", format=".2f"
+                            ),
                         ],
                     )
                     .properties(height=240)
@@ -403,6 +443,9 @@ with tab_trends:
 
             if "elevation_gain" in clean_df.columns:
                 st.subheader("Elevation Gain vs Distance")
+                st.caption(
+                    "Higher elevation at the same distance usually makes the run feel harder and can explain slower paces or higher heart rates."
+                )
 
                 # compare terrain vs distance
                 elevation_chart = (
@@ -412,8 +455,14 @@ with tab_trends:
                         x=alt.X("distance_km:Q", title="Distance (km)"),
                         y=alt.Y("elevation_gain:Q", title="Elevation gain (m)"),
                         tooltip=[
-                            alt.Tooltip("distance_km:Q", title="Distance (km)", format=".2f"),
-                            alt.Tooltip("elevation_gain:Q", title="Elevation gain (m)", format=".0f"),
+                            alt.Tooltip(
+                                "distance_km:Q", title="Distance (km)", format=".2f"
+                            ),
+                            alt.Tooltip(
+                                "elevation_gain:Q",
+                                title="Elevation gain (m)",
+                                format=".0f",
+                            ),
                         ],
                     )
                     .properties(height=240)
@@ -422,6 +471,9 @@ with tab_trends:
 
             if "calories" in clean_df.columns:
                 st.subheader("Calories Over Time")
+                st.caption(
+                    "Higher calories generally means more work (distance, intensity, hills). Use this as a rough load proxy, not a precise measurement."
+                )
 
                 # total calories per day
                 daily_calories = clean_df.groupby("activity_date", as_index=False)[
