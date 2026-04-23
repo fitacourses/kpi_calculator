@@ -10,7 +10,7 @@
 
 This repository is my personal workspace for storing all projects and assignments from the **"Data Analysis Fundamentals and Programming with Python"** course by FITA.
 
-Each project folder represents one of the four course assignments — grouped in one place to keep everything organized and easy to navigate.
+It includes **4 course assignments** plus a **capstone project** — all grouped in one place to keep everything organized and easy to navigate.
 
 ---
 
@@ -19,13 +19,22 @@ Each project folder represents one of the four course assignments — grouped in
 - **Syntax & Logic** — Variables, conditions, loops, functions  
 - **Data Processing** — Working with files, the Pandas library  
 - **Visualization** — Turning raw data into meaningful charts  
-- **Web Scraping** — Automating data collection from online sources
+- **Web Scraping** — Automating data collection from online sources  
+- **Interactive Apps** — Building web interfaces with Streamlit  
 
 ---
 
-## 📁 Course Assignments
+## 📁 Projects & Assignments
 
-This repository contains **4 assignments**, one for each module of the course.
+This repository contains **4 assignments** and **1 capstone project**, covering different modules of the course.
+
+### 🏃 Capstone Project (running_app) — Running Performance Analyzer
+
+> *Interactive web app — Streamlit, data analysis, and visualization.*
+
+A Streamlit-based web application for analyzing running performance data from Garmin CSV exports. Upload activity files to visualize pace trends, heart rate insights, and receive coaching recommendations. Features three tabs: Overview (activity summaries), Trends (progression charts), and Insights (personal records and signals).
+
+---
 
 ### 📝 Task 1 (t1_margin_calculator) — KPI Product Margin Calculator
 
@@ -51,7 +60,7 @@ A Python script that reads running session data from a CSV file and visualizes r
 
 ---
 
-### 🌐 Task 4 (t4_running_events_scraper) — Web Scraping
+### 🌐 Task 4 (t4_sports_events_scraper) — Web Scraping
 
 > *Web data collection — requests, BeautifulSoup, and HTML parsing.*
 
@@ -66,6 +75,8 @@ A Python script that automatically collects all sports event data from sportlat.
 - **openpyxl** — Excel file export
 - **matplotlib** — data visualization
 - **requests / BeautifulSoup** — web scraping
+- **Streamlit** — interactive web apps
+- **Altair** — advanced data visualization
 - **VS Code** — code editor used for development
 
 ---
@@ -76,22 +87,27 @@ A Python script that automatically collects all sports event data from sportlat.
 2. Open the project folder you want to work on  
 3. Make sure Python 3 is installed on your machine  
 4. Install dependencies if needed  
-5. Run `main.py` inside the selected assignment folder  
+5. Run the appropriate script or app  
 
-Example:
+Examples:
 
 ```bash
+# For assignments (t1-t4)
 pip install pandas openpyxl matplotlib requests beautifulsoup4
 python main.py 
 
+# For capstone project (running_app)
+pip install streamlit pandas altair
+streamlit run app.py
 ```
 
 ## 📌 Notes
 
-- Each assignment is stored in its own folder
-- Every project includes its own README.md with more details README.md for a breakdown of the goal, stages, and expected output
-- I’ve tried to keep the code readable, structured, and beginner-friendly
+- Each assignment and project is stored in its own folder
+- Every project includes its own README.md with more details on the goal, stages, and expected output
+- I've tried to keep the code readable, structured, and beginner-friendly
 - The goal is not perfect code, but steady progress through practical tasks
+- The capstone project demonstrates integration of all learned skills into an interactive application
 
 ---
 
