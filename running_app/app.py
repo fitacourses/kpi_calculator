@@ -961,9 +961,10 @@ with tab_insights:
                 if total_km > 0:
                     hard_ratio = hard_km / total_km
 
+                st.markdown("**Weekly intensity signal**")
                 if total_runs >= 3 and hard_ratio > 0.30:
                     st.info(
-                        "This week leaned hard. If you’re not tapering, you’ll likely improve faster by backing off and letting your body absorb the work."
+                        "A big share of your km was tempo/race. That can feel productive short-term, but fatigue accumulates fast — pay extra attention to sleep, soreness, and easy-day effort."
                     )
                 elif total_runs >= 3 and (tempo_runs + race_runs) == 0:
                     st.info(
@@ -979,7 +980,7 @@ with tab_insights:
             latest_bpm = float(latest["bpm"])
             latest_pace = float(latest["pace_min"])
 
-            # --- Heat / fatigue detector ---
+            # --- Acute stress check (latest run) ---
             st.divider()
             # Compare your latest run to your historical HR at a similar pace.
             # If HR is unusually high for the same pace, it often signals fatigue/heat/sleep issues.
@@ -1008,11 +1009,11 @@ with tab_insights:
                 if not fallback.empty:
                     baseline_bpm = float(fallback["bpm"].median())
 
-            st.markdown("**Heat / fatigue detector**")
+            st.markdown("**Acute stress check (latest run)**")
             heat_level = "unknown"
             if baseline_bpm is None:
                 st.write(
-                    f"Latest run: {format_pace_min_to_mmss(latest_pace)} min/km @ {latest_bpm:.0f} bpm. Give me a bit more history and I’ll start catching fatigue/heat patterns reliably."
+                    f"Latest run: {format_pace_min_to_mmss(latest_pace)} min/km @ {latest_bpm:.0f} bpm. With a bit more history, I can flag when HR is unusually high for the same pace."
                 )
             else:
                 delta_bpm = latest_bpm - baseline_bpm
@@ -1020,12 +1021,12 @@ with tab_insights:
                 if delta_bpm >= 10:
                     heat_level = "red"
                     st.error(
-                        f"Big red flag: your heart rate is ~+{delta_bpm:.0f} bpm higher than normal for this pace. Common causes: fatigue, heat, poor sleep, dehydration."
+                        f"Big red flag: HR is ~+{delta_bpm:.0f} bpm higher than your normal for this pace. Common causes: heat, dehydration, poor sleep, or accumulated fatigue."
                     )
                 elif delta_bpm >= 6:
                     heat_level = "yellow"
                     st.warning(
-                        f"Caution: your heart rate is ~+{delta_bpm:.0f} bpm higher than usual for this pace. You may be carrying fatigue or running in tougher conditions."
+                        f"Caution: HR is ~+{delta_bpm:.0f} bpm higher than usual for this pace. Conditions (heat/hills) or fatigue may be pushing stress up."
                     )
                 else:
                     heat_level = "green"
@@ -1033,49 +1034,18 @@ with tab_insights:
                         "Good signal: your heart rate matches your normal level for this pace."
                     )
 
-            # --- Recovery readiness ---
+            # --- Recovery readiness (training load) ---
             st.divider()
-            st.markdown("**Recovery readiness (last 3 runs)**")
+            st.markdown("**Recovery readiness (training load)**")
             readiness_level = "unknown"
-            recent3 = runs_df.tail(3).copy()
-            if len(recent3) < 3:
-                st.write("Need at least 3 runs with HR data to judge readiness.")
+            if last7.empty:
+                st.write("Need at least a few runs in the last 7 days to judge readiness.")
             else:
-                # Build a baseline mapping: "at this pace, what's my normal HR?"
-                # We do it per pace bin so the baseline adapts across easy vs steady running.
-                baseline_pool = runs_df.iloc[:-3].copy()
-                if baseline_pool.empty:
-                    baseline_pool = runs_df.copy()
-
-                baseline_pool["pace_bin"] = (
-                    baseline_pool["pace_min"] * 10
-                ).round() / 10
-                baseline_bins = baseline_pool.groupby("pace_bin")["bpm"].median()
-                global_baseline = float(baseline_pool["bpm"].median())
-
-                def baseline_for_pace(pace_val):
-                    # Choose the closest pace bin; if bins are missing, fall back to global median.
-                    if baseline_bins.empty:
-                        return global_baseline
-                    bin_val = round(pace_val * 10) / 10
-                    if bin_val in baseline_bins.index:
-                        return float(baseline_bins.loc[bin_val])
-                    nearest = (baseline_bins.index.to_series() - bin_val).abs().idxmin()
-                    return float(baseline_bins.loc[nearest])
-
-                recent3["bpm_baseline"] = recent3["pace_min"].apply(baseline_for_pace)
-                recent3["bpm_delta"] = recent3["bpm"] - recent3["bpm_baseline"]
-
-                # Two signals:
-                # - last_delta: the most recent run (today's freshness)
-                # - avg_delta: the last 3 runs (trend over the last week-ish)
-                last_delta = float(recent3.iloc[-1]["bpm_delta"])
-                avg_delta = float(recent3["bpm_delta"].mean())
-
-                # Injury risk guardrail: a fast volume jump increases fatigue/injury odds.
-                last7_km = 0.0
-                if not last7.empty:
-                    last7_km = float(last7["distance_km"].sum())
+                # Training-load signals (independent from the acute stress check above):
+                # - volume spike vs previous 7 days
+                # - a high share of "hard" km (tempo/race)
+                # - total volume vs your recent 4-week average
+                last7_km = float(last7["distance_km"].sum())
                 prev7_km = float(
                     runs_df[
                         (runs_df["activity_date"] < max_date - pd.Timedelta(days=7))
@@ -1085,24 +1055,45 @@ with tab_insights:
 
                 volume_spike = prev7_km > 0 and last7_km > prev7_km * 1.3
 
-                if (
-                    last_delta >= 10
-                    or avg_delta >= 8
-                    or (volume_spike and last_delta >= 6)
-                ):
+                hard_km = float(
+                    last7[last7["session_type"].isin(["tempo", "race"])][
+                        "distance_km"
+                    ].sum()
+                )
+                hard_ratio = 0.0
+                if last7_km > 0:
+                    hard_ratio = hard_km / last7_km
+
+                weekly = (
+                    runs_df.groupby(pd.Grouper(key="activity_date", freq="W-MON"))
+                    .agg(weekly_km=("distance_km", "sum"))
+                    .reset_index()
+                    .rename(columns={"activity_date": "week_start"})
+                    .sort_values("week_start")
+                )
+                last4_mean_km = float("nan")
+                if len(weekly) >= 1:
+                    last4_mean_km = float(weekly.tail(4)["weekly_km"].mean())
+                vs_last4 = (
+                    not math.isnan(last4_mean_km)
+                    and last4_mean_km > 0
+                    and last7_km > last4_mean_km * 1.25
+                )
+
+                if (volume_spike and hard_ratio > 0.25) or (vs_last4 and hard_ratio > 0.30):
                     readiness_level = "red"
                     st.error(
-                        "Recovery is not there yet — your recent runs show consistently higher HR for the same effort."
+                        "Recovery risk is high: big load + a lot of intensity. Make the next few days easy."
                     )
-                elif last_delta >= 6 or avg_delta >= 5:
+                elif volume_spike or hard_ratio > 0.30 or vs_last4:
                     readiness_level = "yellow"
                     st.warning(
-                        "Some fatigue is showing. An easy day will likely give you more benefit than intensity right now."
+                        "Load is on the high side. A lighter/easy day will likely pay off more than adding intensity."
                     )
                 else:
                     readiness_level = "green"
                     st.success(
-                        "You look ready — no clear fatigue flags in the last few runs."
+                        "Load looks controlled — good conditions for progress."
                     )
             st.divider()
 
@@ -1118,25 +1109,25 @@ with tab_insights:
 
             if combined_level == "green":
                 coach_action_box(
-                    "Training recommendation",
-                    "Green light. Do your planned session — intensity is OK.",
+                    "Daily recommendation",
+                    "Do your planned session — you’re good to go.",
                     tone="success",
                 )
             elif combined_level == "yellow":
                 coach_action_box(
-                    "Training recommendation",
+                    "Daily recommendation",
                     "Dial it back. Keep it easy (no intensity) and cut the run by ~20–30%.",
                     tone="warning",
                 )
             elif combined_level == "red":
                 coach_action_box(
-                    "Training recommendation",
+                    "Daily recommendation",
                     "Stop the grind. Rest, or do a very easy short run only. Skip intensity.",
                     tone="error",
                 )
             else:
                 coach_action_box(
-                    "Training recommendation",
+                    "Daily recommendation",
                     "Not enough baseline yet. Keep runs easy and consistent for 1–2 weeks — then this gets sharp.",
                     tone="info",
                 )
@@ -1155,7 +1146,6 @@ with tab_insights:
                 last4 = float(weekly.tail(4)["weekly_km"].mean())
 
             # --- Next-week focus (from last 7 days mix) ---
-            st.subheader("Next 7 days")
             if not last7.empty:
                 total_km = float(last7["distance_km"].sum())
                 longest_km = float(last7["distance_km"].max())
@@ -1190,14 +1180,14 @@ with tab_insights:
                     )
                     if readiness_level == "green":
                         coach_action_box(
-                            "Next 7 days recommendation",
+                            "Weekly recommendation",
                             "Hold weekly distance flat (no increase). You can keep 1 controlled quality session (tempo or steady intervals), but keep everything else easy.",
                             tone="warning",
                         )
                     else:
                         allow_intensity = False
                         coach_action_box(
-                            "Next 7 days recommendation",
+                            "Weekly recommendation",
                             "Hold weekly distance flat (or drop ~10%) and skip intensity. Make every run easy and relaxed.",
                             tone="warning",
                         )
@@ -1206,7 +1196,7 @@ with tab_insights:
                     allow_intensity = False
                     next7_reco_emitted = True
                     coach_action_box(
-                        "Next 7 days recommendation",
+                        "Weekly recommendation",
                         "Make it a recovery week: easy runs only, prioritize sleep and hydration, skip intensity.",
                         tone="error",
                     )
@@ -1214,7 +1204,7 @@ with tab_insights:
                     allow_intensity = False
                     next7_reco_emitted = True
                     coach_action_box(
-                        "Next 7 days recommendation",
+                        "Weekly recommendation",
                         "Keep intensity out. Easy runs only; add one steady run only if you feel noticeably better mid-week.",
                         tone="warning",
                     )
@@ -1222,13 +1212,13 @@ with tab_insights:
                 if allow_intensity and not next7_reco_emitted:
                     if hard_ratio > 0.30 and len(last7) >= 3:
                         coach_action_box(
-                            "Next 7 days recommendation",
+                            "Weekly recommendation",
                             "Last week had a lot of hard running. Cap it at 1 quality session and keep the rest easy.",
                             tone="warning",
                         )
                     elif (tempo_runs + race_runs) == 0 and len(last7) >= 3:
                         coach_action_box(
-                            "Next 7 days recommendation",
+                            "Weekly recommendation",
                             "Add one controlled quality session (tempo). Keep everything else easy/steady and let the quality pop.",
                             tone="info",
                         )
@@ -1238,7 +1228,7 @@ with tab_insights:
                             next7_tone = "success"
 
                         coach_action_box(
-                            "Next 7 days recommendation",
+                            "Weekly recommendation",
                             "Repeat a similar week. If you feel fresh, nudge distance +5–10% — but don’t increase both distance and intensity.",
                             tone=next7_tone,
                         )
