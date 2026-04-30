@@ -447,6 +447,42 @@ def format_pace_min_to_mmss(pace_min):
     return f"{minutes}:{seconds:02d}"
 
 
+def get_run_streaks(activity_date_series: pd.Series) -> pd.DataFrame:
+    """
+    Compute streaks of consecutive calendar days with at least one run.
+    Returns a dataframe with: start_date, end_date, days (int).
+    """
+    if activity_date_series is None:
+        return pd.DataFrame(columns=["start_date", "end_date", "days"])
+
+    dates = pd.to_datetime(activity_date_series, errors="coerce").dropna()
+    if dates.empty:
+        return pd.DataFrame(columns=["start_date", "end_date", "days"])
+
+    unique_days = pd.Series(dates.dt.normalize().unique()).sort_values()
+    if unique_days.empty:
+        return pd.DataFrame(columns=["start_date", "end_date", "days"])
+
+    streaks = []
+    start_day = unique_days.iloc[0]
+    prev_day = unique_days.iloc[0]
+    length_days = 1
+
+    for day in unique_days.iloc[1:]:
+        if (day - prev_day).days == 1:
+            length_days += 1
+        else:
+            streaks.append(
+                {"start_date": start_day, "end_date": prev_day, "days": length_days}
+            )
+            start_day = day
+            length_days = 1
+        prev_day = day
+
+    streaks.append({"start_date": start_day, "end_date": prev_day, "days": length_days})
+    return pd.DataFrame(streaks)
+
+
 def coach_action_box(title, message, tone="info"):
     # Render a larger, colored box for important messages.
     # We use a small set of tones to keep styling consistent.
@@ -606,11 +642,19 @@ with tab_overview:
                 )
 
                 st.subheader("Run Type Summary")
+                run_summary = run_summary.sort_values("run_type")
+                run_summary["type_label"] = run_summary["run_type"].astype(str).map(
+                    {
+                        "short (<7 km)": "Short: <7 km",
+                        "medium (7–13 km)": "Medium: 7-13 km",
+                        "long (>13 km)": "Long: >13 km",
+                    }
+                )
                 run_summary_table = run_summary[
-                    ["run_type", "runs", "avg_pace", "total_distance_km"]
+                    ["type_label", "runs", "avg_pace", "total_distance_km"]
                 ].rename(
                     columns={
-                        "run_type": "Run type",
+                        "type_label": "Type",
                         "runs": "Runs",
                         "avg_pace": "Avg pace (min/km)",
                         "total_distance_km": "Total distance (km)",
@@ -717,6 +761,133 @@ with tab_trends:
                     .properties(height=260)
                 )
                 st.altair_chart(pace_over_time_chart, use_container_width=True)
+
+            # Distance vs pace relationship (shown after pace trend for context).
+            st.subheader("Correlation check")
+            st.caption(
+                "Shows how distance relates to pace (min/km): negative means longer runs tend to be faster; positive means longer runs tend to be slower."
+            )
+
+            pace_df_for_corr = pace_df.copy()
+            pace_df_for_corr = pace_df_for_corr.dropna(
+                subset=["distance_km", "pace_min", "run_type"]
+            )
+
+            if pace_df_for_corr.empty:
+                st.info("Not enough pace + distance data to compute correlations.")
+            else:
+                # Use the same guardrails as the summary table so obvious outliers don't dominate.
+                pace_df_for_corr = pace_df_for_corr[
+                    (pace_df_for_corr["distance_km"] > 2)
+                    & (pace_df_for_corr["pace_min"] < 9)
+                    & (pace_df_for_corr["pace_min"] >= 3.5)
+                ].copy()
+
+                def _corr_distance_vs_pace(g: pd.DataFrame) -> float:
+                    if len(g) < 2:
+                        return float("nan")
+                    return float(g["distance_km"].corr(g["pace_min"]))
+
+                corr_by_type = (
+                    pace_df_for_corr.groupby("run_type", as_index=False)
+                    .apply(lambda g: pd.Series({"Relationship score (r)": _corr_distance_vs_pace(g)}))
+                    .reset_index(drop=True)
+                )
+                corr_by_type = corr_by_type.rename(columns={"run_type": "Run type"})
+                corr_by_type = corr_by_type.dropna(subset=["Relationship score (r)"])
+
+                # Keep a stable order + colors so it matches the rest of the app.
+                type_order = ["short (<7 km)", "medium (7–13 km)", "long (>13 km)"]
+                corr_by_type["Run type"] = pd.Categorical(
+                    corr_by_type["Run type"], categories=type_order, ordered=True
+                )
+
+                if corr_by_type.empty:
+                    st.info(
+                        "Not enough data to compute relationship scores by run type."
+                    )
+                else:
+                    corr_bar = (
+                        alt.Chart(corr_by_type)
+                        .mark_bar(size=55)
+                        .encode(
+                            x=alt.X(
+                                "Run type:N",
+                                sort=type_order,
+                                title=None,
+                                axis=alt.Axis(labels=False, ticks=False),
+                            ),
+                            y=alt.Y(
+                                "Relationship score (r):Q",
+                                scale=alt.Scale(domain=[-1, 1], clamp=True),
+                                title="Relationship score (r)",
+                                axis=alt.Axis(grid=True, tickCount=9),
+                            ),
+                            color=alt.Color(
+                                "Run type:N",
+                                scale=alt.Scale(
+                                    domain=type_order,
+                                    range=["#2563EB", "#10B981", "#F97316"],
+                                ),
+                                legend=alt.Legend(
+                                    title=None,
+                                    orient="top",
+                                    direction="horizontal",
+                                    labelFontSize=12,
+                                    symbolType="square",
+                                    symbolSize=120,
+                                ),
+                            ),
+                            tooltip=[
+                                alt.Tooltip("Run type:N", title="Run type"),
+                                alt.Tooltip(
+                                    "Relationship score (r):Q",
+                                    title="Score (r)",
+                                    format=".2f",
+                                ),
+                            ],
+                        )
+                        .properties(height=340)
+                    )
+
+                    label_layer = (
+                        alt.Chart(
+                            corr_by_type[corr_by_type["Relationship score (r)"] >= 0]
+                        )
+                        .mark_text(
+                            dy=-10, fontSize=14, fontWeight="bold", color="#111827"
+                        )
+                        .encode(
+                            x=alt.X("Run type:N", sort=type_order, title=None),
+                            y=alt.Y("Relationship score (r):Q"),
+                            text=alt.Text("Relationship score (r):Q", format=".2f"),
+                        )
+                    )
+
+                    label_layer_neg = (
+                        alt.Chart(
+                            corr_by_type[corr_by_type["Relationship score (r)"] < 0]
+                        )
+                        .mark_text(
+                            dy=14, fontSize=14, fontWeight="bold", color="#111827"
+                        )
+                        .encode(
+                            x=alt.X("Run type:N", sort=type_order, title=None),
+                            y=alt.Y("Relationship score (r):Q"),
+                            text=alt.Text("Relationship score (r):Q", format=".2f"),
+                        )
+                    )
+
+                    zero_line = (
+                        alt.Chart(pd.DataFrame({"y": [0]}))
+                        .mark_rule(color="#6B7280", strokeWidth=2)
+                        .encode(y="y:Q")
+                    )
+
+                    combined_corr_chart = (
+                        zero_line + corr_bar + label_layer + label_layer_neg
+                    ).properties(padding={"top": 8})
+                    st.altair_chart(combined_corr_chart, use_container_width=True)
 
         st.subheader("Effort Proxy (Pace vs Heart Rate)")
         # Use run-level data (one point per activity).
@@ -846,10 +1017,6 @@ with tab_trends:
 fastest_1km_pace_min = None
 fastest_1km_date = None
 
-highest_elevation_gain_m = None
-highest_elevation_date = None
-highest_elevation_distance_km = None
-
 most_efficient_m_per_beat = None
 most_efficient_date = None
 most_efficient_pace_min = None
@@ -892,17 +1059,6 @@ if clean_df is not None:
             fastest_1km_pace_min = float(best_row["pace_min"])
             fastest_1km_date = best_row["activity_date"]
 
-    # Highest elevation gain run (single activity).
-    if "elevation_gain" in clean_df.columns:
-        elev_df = clean_df.dropna(subset=["elevation_gain"]).copy()
-        if not elev_df.empty:
-            # `idxmax()` returns the index of the largest elevation gain.
-            elev_row = elev_df.loc[elev_df["elevation_gain"].idxmax()]
-            highest_elevation_gain_m = float(elev_row["elevation_gain"])
-            highest_elevation_date = elev_row["activity_date"]
-            if "distance_km" in elev_row:
-                highest_elevation_distance_km = float(elev_row["distance_km"])
-
     # Most efficient run:
     # Use meters per heartbeat = distance_m / total_beats.
     # total_beats ~= duration_minutes * bpm
@@ -939,13 +1095,13 @@ if clean_df is not None:
 # region Insights Tab
 
 with tab_insights:
-    st.subheader("Insights")
-
     if clean_df is not None:
         # Show the 3 headline records first, then the coaching-style insights.
         st.subheader("Records")
 
         col1, col2, col3 = st.columns(3)
+
+        streaks_df = get_run_streaks(clean_df["activity_date"])
 
         with col1:
             if fastest_1km_pace_min is not None:
@@ -959,16 +1115,17 @@ with tab_insights:
                 st.metric("Fastest pace (1 km proxy)", "—")
 
         with col2:
-            if highest_elevation_gain_m is not None:
-                st.metric(
-                    "Highest elevation gain (m)", f"{highest_elevation_gain_m:.0f}"
-                )
-                if highest_elevation_distance_km is not None:
-                    st.caption(f"Distance: {highest_elevation_distance_km:.2f} km")
-                if highest_elevation_date is not None:
-                    st.caption(f"Date: {highest_elevation_date.strftime('%Y-%m-%d')}")
+            if streaks_df.empty:
+                st.metric("Longest streak (days)", "—")
             else:
-                st.metric("Highest elevation gain (m)", "—")
+                best_streak = streaks_df.sort_values(
+                    ["days", "end_date"], ascending=[False, False]
+                ).iloc[0]
+
+                st.metric("Longest streak (days)", int(best_streak["days"]))
+                st.caption(
+                    f"Period: {best_streak['start_date'].strftime('%Y-%m-%d')} → {best_streak['end_date'].strftime('%Y-%m-%d')}"
+                )
 
         with col3:
             if most_efficient_m_per_beat is not None:
@@ -1042,7 +1199,7 @@ with tab_insights:
                 label_pool["activity_date"] >= max_date - pd.Timedelta(days=7)
             ]
 
-            st.subheader("Insights (last 7 days)")
+            st.subheader("Last 7 days")
 
             if last7.empty:
                 st.write(
@@ -1071,7 +1228,6 @@ with tab_insights:
                     tempo_runs = int(by_type["runs"].get("tempo", 0))
                     race_runs = int(by_type["runs"].get("race", 0))
 
-                st.caption("Your last 7 days — quick snapshot:")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("Runs", total_runs)
@@ -1080,7 +1236,6 @@ with tab_insights:
                 with col3:
                     st.metric("Longest run", f"{longest_km:.1f} km")
 
-                st.caption("Session mix (how the week felt):")
                 m1, m2, m3, m4 = st.columns(4)
                 with m1:
                     st.metric("Easy", easy_runs)
@@ -1101,7 +1256,6 @@ with tab_insights:
                 if total_km > 0:
                     hard_ratio = hard_km / total_km
 
-                st.markdown("**Weekly intensity signal**")
                 if total_runs >= 3 and hard_ratio > 0.30:
                     st.info(
                         "A big share of your km was tempo/race. That can feel productive short-term, but fatigue accumulates fast — pay extra attention to sleep, soreness, and easy-day effort."
@@ -1120,7 +1274,7 @@ with tab_insights:
             latest_bpm = float(latest["bpm"])
             latest_pace = float(latest["pace_min"])
 
-            # --- Acute stress check (latest run) ---
+            # --- Acute stress check ---
             st.divider()
             # Compare your latest run to your historical HR at a similar pace.
             # If HR is unusually high for the same pace, it often signals fatigue/heat/sleep issues.
@@ -1149,11 +1303,11 @@ with tab_insights:
                 if not fallback.empty:
                     baseline_bpm = float(fallback["bpm"].median())
 
-            st.markdown("**Acute stress check (latest run)**")
+            st.markdown("**Acute stress check**")
             heat_level = "unknown"
             if baseline_bpm is None:
                 st.write(
-                    f"Latest run: {format_pace_min_to_mmss(latest_pace)} min/km @ {latest_bpm:.0f} bpm. With a bit more history, I can flag when HR is unusually high for the same pace."
+                    f"Most recent run: {format_pace_min_to_mmss(latest_pace)} min/km @ {latest_bpm:.0f} bpm. With a bit more history, I can flag when HR is unusually high for the same workload."
                 )
             else:
                 delta_bpm = latest_bpm - baseline_bpm
@@ -1161,27 +1315,27 @@ with tab_insights:
                 if delta_bpm >= 10:
                     heat_level = "red"
                     st.error(
-                        f"Big red flag: HR is ~+{delta_bpm:.0f} bpm higher than your normal for this pace. Common causes: heat, dehydration, poor sleep, or accumulated fatigue."
+                        f"HR is ~+{delta_bpm:.0f} bpm higher than your normal for this workload. Common causes: heat, dehydration, poor sleep, or accumulated fatigue."
                     )
                 elif delta_bpm >= 6:
                     heat_level = "yellow"
                     st.warning(
-                        f"Caution: HR is ~+{delta_bpm:.0f} bpm higher than usual for this pace. Conditions (heat/hills) or fatigue may be pushing stress up."
+                        f"HR is ~+{delta_bpm:.0f} bpm higher than usual for this workload. Conditions (heat/hills) or fatigue may be pushing stress up."
                     )
                 else:
                     heat_level = "green"
                     st.success(
-                        "Good signal: your heart rate matches your normal level for this pace."
+                        "Heart rate response looks normal for this workload."
                     )
 
-            # --- Recovery readiness (training load) ---
+            # --- Recovery readiness ---
             st.divider()
-            st.markdown("**Recovery readiness (training load)**")
+            st.markdown("**Recovery readiness**")
             readiness_level = "unknown"
             if last7.empty:
                 st.write("Need at least a few runs in the last 7 days to judge readiness.")
             else:
-                # Training-load signals (independent from the acute stress check above):
+                # Recovery signals (independent from the acute stress check above):
                 # - volume spike vs previous 7 days
                 # - a high share of "hard" km (tempo/race)
                 # - total volume vs your recent 4-week average
@@ -1223,17 +1377,17 @@ with tab_insights:
                 if (volume_spike and hard_ratio > 0.25) or (vs_last4 and hard_ratio > 0.30):
                     readiness_level = "red"
                     st.error(
-                        "Recovery risk is high: big load + a lot of intensity. Make the next few days easy."
+                        "Recovery risk is high: recent load and intensity are both elevated. Make the next few days easy (or take a rest day)."
                     )
                 elif volume_spike or hard_ratio > 0.30 or vs_last4:
                     readiness_level = "yellow"
                     st.warning(
-                        "Load is on the high side. A lighter/easy day will likely pay off more than adding intensity."
+                        "Recovery may be limited: your recent load is higher than usual. A lighter/easy day will likely pay off more than adding intensity."
                     )
                 else:
                     readiness_level = "green"
                     st.success(
-                        "Load looks controlled — good conditions for progress."
+                        "Recovery looks solid — good conditions for progress."
                     )
             st.divider()
 
